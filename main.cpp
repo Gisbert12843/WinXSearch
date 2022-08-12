@@ -432,7 +432,7 @@ int wmain(int argc, wchar_t* argv[])
 	do
 	{
 
-		cout << "Suchebegriffe mit Leerzeichen getrennt eingeben." << endl;
+		cout << "Please provide Strings to be searched for. Seperated by spaces." << endl;
 
 		std::getline(std::cin, to_be_opened);
 
