@@ -1,4 +1,8 @@
-How-To-Use
+What it does:
+searches through every kind of folder/file/content after predefined searchStrings; optional opening of files at the end of the search, designed to work from context menu (setup for that is still WIP)
+
+
+How-To-Use:
 
 Provide a path via console or via context menu
 
