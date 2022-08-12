@@ -10,11 +10,72 @@
 #include <string_view>
 #include <vector>
 #include <shlobj_core.h>
+#include <time.h>
+#include <thread>
+
 //#include <combaseapi.h>
 
 namespace fs = std::filesystem;
 
 using namespace std;
+
+
+std::string wide_string_to_string(std::wstring wide_string)
+{
+	if (wide_string.empty())
+	{
+		return "";
+	}
+
+	const auto size_needed = WideCharToMultiByte(CP_UTF8, 0, &wide_string.at(0), (int)wide_string.size(), nullptr, 0, nullptr, nullptr);
+	if (size_needed <= 0)
+	{
+		throw std::runtime_error("WideCharToMultiByte() failed: " + std::to_string(size_needed));
+	}
+
+	std::string result(size_needed, 0);
+	WideCharToMultiByte(CP_UTF8, 0, &wide_string.at(0), (int)wide_string.size(), &result.at(0), size_needed, nullptr, nullptr);
+	return result;
+}
+
+
+
+void printProgress(double percentage)
+{
+	double maxPrint = 20;
+	double toPrint = percentage/5;
+	system("CLS");
+	std::cout << "[";
+	for (int i = 0; i < toPrint; i++)
+	{
+		std::cout << '\|';
+		maxPrint--;
+	}
+	for (int i = 0; i < maxPrint; i++)
+	{
+		std::cout << ' ';
+	}
+	std::cout << "]" << percentage << "%" << endl;
+}
+
+std::string wide_string_to_string_REF(std::wstring& wide_string)
+{
+	if (wide_string.empty())
+	{
+		return "";
+	}
+
+	const auto size_needed = WideCharToMultiByte(CP_UTF8, 0, &wide_string.at(0), (int)wide_string.size(), nullptr, 0, nullptr, nullptr);
+	if (size_needed <= 0)
+	{
+		throw std::runtime_error("WideCharToMultiByte() failed: " + std::to_string(size_needed));
+	}
+
+	std::string result(size_needed, 0);
+	WideCharToMultiByte(CP_UTF8, 0, &wide_string.at(0), (int)wide_string.size(), &result.at(0), size_needed, nullptr, nullptr);
+	return result;
+}
+
 
 bool validateInputStringForInitialInput(string input, vector<string>& output)
 {
@@ -116,6 +177,21 @@ bool validateInputStringForOpening(string input, vector<int>& output)
 	return true;
 }
 
+
+string convertToPath(string x)
+{
+	string s = x;
+	for (int it = 0; it < s.size(); it++)
+	{
+
+		if (s.at(it) == '\\')
+		{
+			s.replace(it, 2, 2, '\\');
+		}
+	}
+	return s;
+}
+
 void display(
 	std::vector<std::filesystem::directory_entry> vec_folder_path,
 	std::vector<std::filesystem::directory_entry> vec_content_path,
@@ -129,29 +205,29 @@ void display(
 	int i = 0;
 	if (!vec_folder_path.empty())
 	{
-		cout << "Found Folders\n****************************************************************\n";
+		std::cout << "Found Folders\n****************************************************************\n";
 		for (int j = 0; j < vec_folder_path.size(); j++, i++)
-			cout << i + 1 << ": " << vec_folder_path.at(j) << "\"" << endl;
-		cout << "****************************************************************\n" << endl;
+			std::cout << i + 1 << ": " << wide_string_to_string(vec_folder_path.at(j).path().wstring()) << "\"" << endl;
+		std::cout << "****************************************************************\n" << endl;
 	}
 	if (!vec_file_path.empty())
 	{
-		cout << "Found Files\n****************************************************************\n";
+		std::cout << "Found Files\n****************************************************************\n";
 		for (int j = 0; j < vec_file_path.size(); j++, i++)
-			cout << i + 1 << ": " << vec_file_path.at(j) << "\"" << endl;
-		cout << "****************************************************************\n" << endl;
+			std::cout << i + 1 << ": " << wide_string_to_string(vec_file_path.at(j).path().wstring()) << "\"" << endl;
+		std::cout << "****************************************************************\n" << endl;
 	}
 	if (!vec_content_path.empty())
 	{
-		cout << "Found Content\n****************************************************************\n";
+		std::cout << "Found Content\n****************************************************************\n";
 		for (int j = 0; j < vec_content_path.size(); j++, i++)
-			cout << i + 1 << ": " << vec_content_path.at(j) << "\"" << endl;
-		cout << "****************************************************************\n" << endl;
+			std::cout << i + 1 << ": " << wide_string_to_string(vec_content_path.at(j).path().wstring()) << "\"" << endl;
+		std::cout << "****************************************************************\n" << endl;
 	}
 	string to_be_opened = ""; //Stringinput of what files the user wants to be opened
 	do
 	{
-		cout << "Was soll geöffnet werden? Eingabemuster: \"1,2,3,40,53\"" << endl;
+		std::cout << "What should be opened? Input-Example: \"1,2,3,40,53\"" << endl;
 
 		std::getline(std::cin, to_be_opened);
 
@@ -164,8 +240,8 @@ void display(
 		if (vec_folder_path.size() >= it)
 		{
 			auto x = (vec_folder_path.at(it - 1));//	(LPCSTR((char*)(filesystem::path(vec_folder_path.at(it - 1)).c_str())))
-			cout << x << endl;
-			string askdjasd = (filesystem::path(x).string()) + "\\\\";
+			std::cout << x << endl;
+			string askdjasd = (wide_string_to_string(filesystem::path(x).wstring()) + "\\\\");
 			const char* y = askdjasd.c_str();
 
 
@@ -187,34 +263,48 @@ void display(
 
 }
 
-void startWinXSearch(string argv, bool searchFolders, bool searchContent, vector<string> vecSearchValue)
+void startWinXSearch(const std::wstring& pathToFolder, bool searchFolders, bool searchContent, vector<string> vecSearchValue)
 {
-	//string pathToFolder = getFolderPath(argv);
-	string pathToFolder = argv;
-	if (!filesystem::directory_entry(argv).is_directory())
+	if (!(filesystem::directory_entry(pathToFolder.c_str()).is_directory()))
 	{
-		pathToFolder = getFolderPath(pathToFolder);
+		cout << "PATH IS NOT A DIRECTORY!" << endl;
+		cin.ignore();
+		exit;
 	}
-	using recursive_directory_iterator = std::filesystem::recursive_directory_iterator; // for convenience
-
 
 	std::vector<std::filesystem::directory_entry> vec_folder_path; //stores folder paths of folders including atleast one of the searched strings
 	std::vector<std::filesystem::directory_entry> vec_content_path; //stores file paths of files whichs content includes atleast one of the searched strings
 	std::vector<std::filesystem::directory_entry> vec_file_path; //stores file paths of files including atleast one of the searched strings
 
+	double filecount = 0;
+	double currentfilecount = 0;
 
-	cout << pathToFolder << endl;
-	//cin.ignore();
+	for (const auto& file : fs::recursive_directory_iterator(pathToFolder))
+		filecount++;
 
-	for (auto dirEntry : recursive_directory_iterator(pathToFolder)) // Iterates over every file/folder in the path of the executable and its subdiretories
+	int milli_seconds = 1 * 1000;
+	time_t start, end;
+	start = time(0);
+
+	for (auto& dirEntry : fs::recursive_directory_iterator(pathToFolder)) // Iterates over every file/folder in the path of the executable and its subdiretories
 	{
+		currentfilecount++;
+		if (time(0) - start == 1)
+		{
+			printProgress((currentfilecount / filecount) * 100);
+			start = start + 1;
+		}
+
 		bool found = false;
+		std::wstring currentPathW = dirEntry.path().c_str();
+		string currentPath = wide_string_to_string(currentPathW);
 
-		//cout << dirEntry << endl;
-		cout << dirEntry.path().string() << endl;
-		//cin.ignore();
+		//std::cout << currentPath << endl;
+		//std::wcout << currentPathW << endl;
+		//wcout.flush(); wcout.clear();
 
-		if ((argv == dirEntry.path().string()) || dirEntry.is_symlink()) //skip if iterated file is the running executable
+
+		if ((pathToFolder == dirEntry.path().wstring()) || dirEntry.is_symlink()) //skip if iterated file is the running executable or a symlink
 			continue;
 
 
@@ -225,37 +315,42 @@ void startWinXSearch(string argv, bool searchFolders, bool searchContent, vector
 
 			for (auto& it : vecSearchValue)
 			{
-				if (string::npos != dirEntry.path().filename().string().find(it))
+				if (string::npos != (wide_string_to_string(dirEntry.path().filename().wstring())).find(it))
 				{
 					vec_folder_path.push_back(dirEntry);
 					found = true;
 					break;
 				}
 			}
+			continue;
 		}
 		else
 		{
 			for (auto& it : vecSearchValue)
 			{
-				if (string::npos != (dirEntry.path().filename().string()).find(it))
-				{
+				if (string::npos != (wide_string_to_string(dirEntry.path().filename().wstring())).find(it)) {
 					vec_file_path.push_back(dirEntry);
 					found = true;
 					break;
 				}
 			}
-			if (found)
+			if (found || searchContent == false) //continue iterating if search was successfull on filename or content search is disabled
 				continue;
 
-			std::ifstream inputfile;
-			inputfile.open(dirEntry, std::ifstream::in);
+
+
+
+			std::wifstream  inputfile;
+			inputfile.open(dirEntry, std::wifstream::in);
 			if (inputfile.rdstate() != ios_base::goodbit)
 				continue;
-			if (searchContent == true && inputfile.good() && inputfile) // optional: filecontent as target
+
+
+			if (inputfile.good() && inputfile) // optional: filecontent as target
 			{
 
-				std::string checkedString;
-				std::vector<std::string> vecOfStr; //File Content as Vector of Strings
+				std::wstring checkedString;
+				std::vector<std::wstring> vecOfStr; //File Content as Vector of Strings
 
 				while (std::getline(inputfile, checkedString)) // Every line of the inputfile gets its own string in the vector
 				{
@@ -269,7 +364,7 @@ void startWinXSearch(string argv, bool searchFolders, bool searchContent, vector
 				{
 					for (auto& searchIt : vecSearchValue)
 					{
-						if (string::npos != it.find(searchIt))
+						if (string::npos != (wide_string_to_string(it)).find(searchIt))
 						{
 							vec_content_path.push_back(dirEntry);
 							found = true;
@@ -283,45 +378,56 @@ void startWinXSearch(string argv, bool searchFolders, bool searchContent, vector
 			else
 			{
 				try { inputfile.close(); }
-				catch (const std::exception&) { cout << "Couldnt close file!" << endl; }
+				catch (const std::exception&) { std::cout << "Couldnt close file!" << endl; }
 			}
+			continue;
 		}
-	}
+
+	}// big for loop ending
+	printProgress((currentfilecount / filecount) * 100);
+
+	std::cout << "DONE" << endl;
+
+
+
 	display(vec_folder_path, vec_content_path, vec_file_path);
-
 }
 
 
 
 
 
-string convertToPath(string x)
-{
-	string s = x;
-	for (int it = 0; it < s.size(); it++)
-	{
-		if (s.at(it) == '\\')
-		{
-			s.replace(it, 2, 2, '\\');
-		}
-	}
-	return s;
-}
 
-int main(int argc, char* argv[])
+
+
+int wmain(int argc, wchar_t* argv[])
 {
 	CoInitializeEx(NULL, COINIT_MULTITHREADED);
 
 
 	bool searchFolders = true; //option for user to search for folders too
-	bool searchContent = false; //option for user to search through file content too
+	bool searchContent = true; //option for user to search through file content too
 	vector<string> VecSearchValue;
 	string to_be_opened = "";
 
 
-	string test = "C:\\Sciebo";
-	//string test = "C:\\Sciebo\\Projects\\WinXSearch\\x64\\Debug\\WinXSearch.exe";
 
+	if (argc == 3)
+	{
+		if (argv[2] == L"-F" || argv[2] == L"-f")
+			searchFolders = true;
+		else
+			if (argv[2] == L"-C" || argv[2] == L"-c")
+				searchContent = true;
+	}
+	if (argc == 4)
+	{
+		if (argv[3] == L"-F" || argv[3] == L"-f")
+			searchFolders = true;
+		else
+			if (argv[3] == L"-C" || argv[3] == L"-c")
+				searchContent = true;
+	}
 
 	do
 	{
@@ -332,53 +438,11 @@ int main(int argc, char* argv[])
 
 	} while (!validateInputStringForInitialInput(to_be_opened, VecSearchValue));
 
+	startWinXSearch(argv[1], searchFolders, searchContent, VecSearchValue);
 
-	if (argc == 1)
-	{
-		cout << "starting argv0" << endl;
-		startWinXSearch(test, searchFolders, searchContent, VecSearchValue);
-		return 1;
-	}
-	else
-		if (argc == 2)
-		{
-			startWinXSearch(argv[1], searchFolders, searchContent, VecSearchValue);
-		}
 
-	//for (int i = 1; i < argc; i++) // processes Argv inputs, either optional setting (-F / -C) or search strings
-	//{
-	//	string s = argv[i];
-	//	switch (i)
-	//	{
-	//	case 1:
-	//	case 2:
-	//	{
-	//		if (s == "-F" || s == "-f")
-	//		{
-	//			cout << "F\n";
-	//			searchFolders = true;
-	//			break;
-	//		}
-	//		if (s == "-C" || s == "-c")
-	//		{
-	//			cout << "C\n";
-	//			searchContent = true;
-	//			break;
-	//		}
-	//	}
-	//	default:
-	//	{
-	//		string s = "";
-	//		for (int j = 0; j < strlen(argv[i]); j++)
-	//		{
-	//			s += argv[i][j];
-	//		}
-	//		VecSearchValue.push_back(s);
-	//		cout << "added " << s << "\n";
-	//		break;
-	//	}
-	//	}
-	//}
+	CoUninitialize();
+
 
 }
 
