@@ -19,13 +19,13 @@ Pick some files to open in explorer
 
 ![image](https://user-images.githubusercontent.com/51728041/184473466-59b4307f-a86c-4d61-958f-51cca190c47b.png)
 
-<br/>
 **-Program may appear stuck when listing huge number of files-**
-</b>
-</b>
-
+<br/>
+<br/>
+<br/>
 **Setup:**
-
+<br/>
+<br/>
 either run the setup program
 <br/>
 <br/>
