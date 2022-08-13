@@ -6,7 +6,7 @@ searches through every kind of folder/file/content after predefined searchString
 
 **How-To-Use:**<br/>
 
-Provide a path via console or via by opening it in the context menu of a specific folder
+Provide a path via console or by opening it in the context menu of a specific folder
 ![image](https://user-images.githubusercontent.com/51728041/184473404-8693c009-b9e7-40c0-92fb-554f8eefdb2c.png)
 <br/>
 Pick one or multiple words to search for
