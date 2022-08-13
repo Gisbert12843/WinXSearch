@@ -1,20 +1,37 @@
-What it does:
-searches through every kind of folder/file/content after predefined searchStrings; optional opening of files at the end of the search, designed to work from context menu (setup for that is still WIP)
+**What it does:**<br/>
 
+searches through every kind of folder/file/content after predefined searchStrings; optional opening of files at the end of the search, designed to work from context menu (setup for that is now available under the release section)
+<br/>
+<br/>
 
-How-To-Use:
+**How-To-Use:**<br/>
 
-Provide a path via console or via context menu
-
+Provide a path via console or by opening it in the context menu of a specific folder
+![image](https://user-images.githubusercontent.com/51728041/184473404-8693c009-b9e7-40c0-92fb-554f8eefdb2c.png)
+<br/>
 Pick one or multiple words to search for
+![image](https://user-images.githubusercontent.com/51728041/184473416-af33a5de-3e7f-4d05-8a3c-221aa5174e87.png)
+![image](https://user-images.githubusercontent.com/51728041/184473489-17678071-fd6f-4a4b-bcdb-89a118986f40.png)
+![image](https://user-images.githubusercontent.com/51728041/184473445-870b2e9d-59e4-48ac-86d6-fc874abc5fdc.png)
 
+<br/>
 Pick some files to open in explorer
 
-Full Setup for less advanced users is still workinprogress. Stay tuned ^^
+![image](https://user-images.githubusercontent.com/51728041/184473466-59b4307f-a86c-4d61-958f-51cca190c47b.png)
 
-
-Setup:
-
+**-Program may appear stuck when listing huge number of files-**
+<br/>
+<br/>
+<br/>
+**Setup:**
+<br/>
+<br/>
+either run the setup program
+<br/>
+<br/>
+**OR**
+<br/>
+<br/>
 drop it in some folder
 
 Create Registry Keys like you see here
@@ -26,4 +43,6 @@ and here
 The location in the registry must be the same, the name of the WinXSearch key, the MUIVerb and Path of the command default value can be changed ^^
 Don't forget the %w at the end of the path and format your path the same as I did.
 
-In some time I will also add a full setup which does all the work for you :)
+I really suggest to just use the installer though :D
+
+
