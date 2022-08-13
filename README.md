@@ -44,5 +44,7 @@ The location in the registry must be the same, the name of the WinXSearch key, t
 Don't forget the %w at the end of the path and format your path the same as I did.
 
 I really suggest to just use the installer though :D
+<br/>
+
 **If you read it this far and enjoy my little program, please consider to give me star <3 thx alot!**
 
