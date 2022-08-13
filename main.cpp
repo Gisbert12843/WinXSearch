@@ -12,6 +12,7 @@
 #include <shlobj_core.h>
 #include <time.h>
 #include <thread>
+#include <wctype.h>
 
 //#include <combaseapi.h>
 
@@ -22,10 +23,13 @@ using namespace std;
 
 std::string wide_string_to_string(std::wstring wide_string)
 {
+	
+
 	if (wide_string.empty())
 	{
 		return "";
 	}
+
 
 	const auto size_needed = WideCharToMultiByte(CP_UTF8, 0, &wide_string.at(0), (int)wide_string.size(), nullptr, 0, nullptr, nullptr);
 	if (size_needed <= 0)
@@ -35,10 +39,20 @@ std::string wide_string_to_string(std::wstring wide_string)
 
 	std::string result(size_needed, 0);
 	WideCharToMultiByte(CP_UTF8, 0, &wide_string.at(0), (int)wide_string.size(), &result.at(0), size_needed, nullptr, nullptr);
+	
+	
+
 	return result;
 }
 
-
+string to_lower_string(string s)
+{
+	for (int i = 0; i < s.size(); i++)
+	{
+		s.at(i) = towlower(s.at(i));
+	}
+	return s;
+}
 
 void printProgress(double percentage)
 {
@@ -225,14 +239,24 @@ void display(
 		std::cout << "****************************************************************\n" << endl;
 	}
 	string to_be_opened = ""; //Stringinput of what files the user wants to be opened
-	do
+
+	if (!(vec_content_path.empty() && vec_file_path.empty() && vec_folder_path.empty()))
 	{
-		std::cout << "What should be opened? Input-Example: \"1,2,3,40,53\"" << endl;
+		do
+		{
+			std::cout << "What should be opened? Input-Example: \"1,2,3,40,53\"" << endl;
 
-		std::getline(std::cin, to_be_opened);
+			std::getline(std::cin, to_be_opened);
 
-	} while (!validateInputStringForOpening(to_be_opened, vec_to_be_opened));
-
+		} while (!validateInputStringForOpening(to_be_opened, vec_to_be_opened));
+	}
+	else
+	{
+		std::cout << "No files match the searching criteria :(" << endl;
+		std::cout << "Press \"Enter\" to exit.";
+		cin.ignore();
+		exit;
+	}
 
 
 	for (auto& it : vec_to_be_opened)
@@ -315,7 +339,7 @@ void startWinXSearch(const std::wstring& pathToFolder, bool searchFolders, bool 
 
 			for (auto& it : vecSearchValue)
 			{
-				if (string::npos != (wide_string_to_string(dirEntry.path().filename().wstring())).find(it))
+				if (string::npos != (to_lower_string(wide_string_to_string(dirEntry.path().filename().wstring()))).find(it))
 				{
 					vec_folder_path.push_back(dirEntry);
 					found = true;
@@ -328,7 +352,7 @@ void startWinXSearch(const std::wstring& pathToFolder, bool searchFolders, bool 
 		{
 			for (auto& it : vecSearchValue)
 			{
-				if (string::npos != (wide_string_to_string(dirEntry.path().filename().wstring())).find(it)) {
+				if (string::npos != (to_lower_string(wide_string_to_string(dirEntry.path().filename().wstring()))).find(it)) {
 					vec_file_path.push_back(dirEntry);
 					found = true;
 					break;
@@ -364,7 +388,7 @@ void startWinXSearch(const std::wstring& pathToFolder, bool searchFolders, bool 
 				{
 					for (auto& searchIt : vecSearchValue)
 					{
-						if (string::npos != (wide_string_to_string(it)).find(searchIt))
+						if (string::npos != (to_lower_string(wide_string_to_string(it))).find(searchIt))
 						{
 							vec_content_path.push_back(dirEntry);
 							found = true;
