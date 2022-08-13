@@ -33,4 +33,4 @@ and here
 The location in the registry must be the same, the name of the WinXSearch key, the MUIVerb and Path of the command default value can be changed ^^
 Don't forget the %w at the end of the path and format your path the same as I did.
 
-I really suggest to just use the installer though :D it took me a whole day to figure out
+I really suggest to just use the installer though :D
