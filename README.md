@@ -11,6 +11,8 @@ Provide a path via console or via by opening it in the context menu of a specifi
 Pick one or multiple words to search for
 <br/>
 Pick some files to open in explorer
+<br/>
+**-Program may appear stuck when listing huge number of files-**
 </b>
 </b>
 
@@ -34,3 +36,5 @@ The location in the registry must be the same, the name of the WinXSearch key, t
 Don't forget the %w at the end of the path and format your path the same as I did.
 
 I really suggest to just use the installer though :D
+
+
