@@ -46,5 +46,5 @@ Don't forget the %w at the end of the path and format your path the same as I di
 I really suggest to just use the installer though :D
 <br/>
 
-**If you read this far and enjoy my little program, please consider to give me star <3 Also I'm always endorsing feedback! thx alot!**
+**If you've read this far and enjoyed my little program, please consider to give me a star <3 Also I'm always endorsing feedback! Thx alot!**
 
