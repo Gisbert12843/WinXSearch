@@ -1,58 +1,16 @@
 #define NOMINMAX
 
-#include <string>
-#include <iostream>
-#include <filesystem>
-#include <windows.h>
-#include <fstream>
-#include <winbase.h>
-#include <numeric>
-#include <string_view>
-#include <vector>
-#include <shlobj_core.h>
-#include <time.h>
-#include <thread>
-#include <wctype.h>
+#include "wholeinclude.h"
+
+#include "conversions.h"
 
 //#include <combaseapi.h>
 
 namespace fs = std::filesystem;
 
-using namespace std;
 
 
-std::string wide_string_to_string(std::wstring wide_string)
-{
-	
 
-	if (wide_string.empty())
-	{
-		return "";
-	}
-
-
-	const auto size_needed = WideCharToMultiByte(CP_UTF8, 0, &wide_string.at(0), (int)wide_string.size(), nullptr, 0, nullptr, nullptr);
-	if (size_needed <= 0)
-	{
-		throw std::runtime_error("WideCharToMultiByte() failed: " + std::to_string(size_needed));
-	}
-
-	std::string result(size_needed, 0);
-	WideCharToMultiByte(CP_UTF8, 0, &wide_string.at(0), (int)wide_string.size(), &result.at(0), size_needed, nullptr, nullptr);
-	
-	
-
-	return result;
-}
-
-string to_lower_string(string s)
-{
-	for (int i = 0; i < s.size(); i++)
-	{
-		s.at(i) = towlower(s.at(i));
-	}
-	return s;
-}
 
 void printProgress(double percentage)
 {
@@ -69,31 +27,15 @@ void printProgress(double percentage)
 	{
 		std::cout << ' ';
 	}
-	std::cout << "]" << percentage << "%" << endl;
-}
-
-std::string wide_string_to_string_REF(std::wstring& wide_string)
-{
-	if (wide_string.empty())
-	{
-		return "";
-	}
-
-	const auto size_needed = WideCharToMultiByte(CP_UTF8, 0, &wide_string.at(0), (int)wide_string.size(), nullptr, 0, nullptr, nullptr);
-	if (size_needed <= 0)
-	{
-		throw std::runtime_error("WideCharToMultiByte() failed: " + std::to_string(size_needed));
-	}
-
-	std::string result(size_needed, 0);
-	WideCharToMultiByte(CP_UTF8, 0, &wide_string.at(0), (int)wide_string.size(), &result.at(0), size_needed, nullptr, nullptr);
-	return result;
+	std::cout << "]" << percentage << "%" << std::endl;
 }
 
 
-bool validateInputStringForInitialInput(string input, vector<string>& output)
+
+
+bool validateInputStringForInitialInput(std::string input, std::vector<std::string>& output)
 {
-	string set = "";
+	std::string set = "";
 	for (int i = 0; i < input.length(); i++)
 	{
 		if (input.at(i) == ' ')
@@ -122,21 +64,7 @@ std::string getFolderPath(std::string pathOfFile)
 	return pathOfFolder;
 }
 
-const wchar_t* GetWC(const char* c)
-{
-	size_t cSize = strlen(c) + 1;
-	wchar_t* wc = new wchar_t[cSize];
 
-	wchar_t* wc2 = wc;
-	delete[] wc;
-
-	size_t outSize;
-	mbstowcs_s(&outSize, wc2, cSize, c, cSize - 1);
-
-
-
-	return wc2;
-}
 
 void BrowseToFile(LPCWSTR filename)
 {
@@ -165,9 +93,9 @@ void BrowseToFolder(LPCWSTR filename) //thx to "Jonathan Potter" on stackoverflo
 
 
 //validates inputstring (returns false if wrong input) and transfers input string to vector
-bool validateInputStringForOpening(string input, vector<int>& output)
+bool validateInputStringForOpening(std::string input, std::vector<int>& output)
 {
-	string set = "";
+	std::string set = "";
 	for (int i = 0; i < input.length(); i++)
 	{
 		if (isdigit(input.at(i)))
@@ -192,19 +120,7 @@ bool validateInputStringForOpening(string input, vector<int>& output)
 }
 
 
-string convertToPath(string x)
-{
-	string s = x;
-	for (int it = 0; it < s.size(); it++)
-	{
 
-		if (s.at(it) == '\\')
-		{
-			s.replace(it, 2, 2, '\\');
-		}
-	}
-	return s;
-}
 
 void display(
 	std::vector<std::filesystem::directory_entry> vec_folder_path,
@@ -221,30 +137,30 @@ void display(
 	{
 		std::cout << "Found Folders\n****************************************************************\n";
 		for (int j = 0; j < vec_folder_path.size(); j++, i++)
-			std::cout << i + 1 << ": " << wide_string_to_string(vec_folder_path.at(j).path().wstring()) << "\"" << endl;
-		std::cout << "****************************************************************\n" << endl;
+			std::cout << i + 1 << ": " << wide_string_to_string(vec_folder_path.at(j).path().wstring()) << "\"" << std::endl;
+		std::cout << "****************************************************************\n" << std::endl;
 	}
 	if (!vec_file_path.empty())
 	{
 		std::cout << "Found Files\n****************************************************************\n";
 		for (int j = 0; j < vec_file_path.size(); j++, i++)
-			std::cout << i + 1 << ": " << wide_string_to_string(vec_file_path.at(j).path().wstring()) << "\"" << endl;
-		std::cout << "****************************************************************\n" << endl;
+			std::cout << i + 1 << ": " << wide_string_to_string(vec_file_path.at(j).path().wstring()) << "\"" << std::endl;
+		std::cout << "****************************************************************\n" << std::endl;
 	}
 	if (!vec_content_path.empty())
 	{
 		std::cout << "Found Content\n****************************************************************\n";
 		for (int j = 0; j < vec_content_path.size(); j++, i++)
-			std::cout << i + 1 << ": " << wide_string_to_string(vec_content_path.at(j).path().wstring()) << "\"" << endl;
-		std::cout << "****************************************************************\n" << endl;
+			std::cout << i + 1 << ": " << wide_string_to_string(vec_content_path.at(j).path().wstring()) << "\"" << std::endl;
+		std::cout << "****************************************************************\n" << std::endl;
 	}
-	string to_be_opened = ""; //Stringinput of what files the user wants to be opened
+	std::string to_be_opened = ""; //Stringinput of what files the user wants to be opened
 
 	if (!(vec_content_path.empty() && vec_file_path.empty() && vec_folder_path.empty()))
 	{
 		do
 		{
-			std::cout << "What should be opened? Input-Example: \"1,2,3,40,53\"" << endl;
+			std::cout << "What should be opened? Input-Example: \"1,2,3,40,53\"" << std::endl;
 
 			std::getline(std::cin, to_be_opened);
 
@@ -252,9 +168,9 @@ void display(
 	}
 	else
 	{
-		std::cout << "No files match the searching criteria :(" << endl;
+		std::cout << "No files match the searching criteria :(" << std::endl;
 		std::cout << "Press \"Enter\" to exit.";
-		cin.ignore();
+		std::cin.ignore();
 		exit;
 	}
 
@@ -264,8 +180,8 @@ void display(
 		if (vec_folder_path.size() >= it)
 		{
 			auto x = (vec_folder_path.at(it - 1));//	(LPCSTR((char*)(filesystem::path(vec_folder_path.at(it - 1)).c_str())))
-			std::cout << x << endl;
-			string askdjasd = (wide_string_to_string(filesystem::path(x).wstring()) + "\\\\");
+			std::cout << x << std::endl;
+			std::string askdjasd = (wide_string_to_string(std::filesystem::path(x).wstring()) + "\\\\");
 			const char* y = askdjasd.c_str();
 
 
@@ -274,12 +190,12 @@ void display(
 		else
 			if (vec_file_path.size() + vec_folder_path.size() >= it)
 			{
-				BrowseToFile(LPCTSTR((char*)(filesystem::path(vec_file_path.at(it - vec_folder_path.size() - 1)).c_str())));
+				BrowseToFile(LPCTSTR((char*)(std::filesystem::path(vec_file_path.at(it - vec_folder_path.size() - 1)).c_str())));
 			}
 			else
 				if (vec_content_path.size() + vec_file_path.size() + vec_folder_path.size() >= it)
 				{
-					BrowseToFile(LPCTSTR((char*)(filesystem::path(vec_content_path.at(it - 1 - vec_folder_path.size() - vec_file_path.size())).c_str())));
+					BrowseToFile(LPCTSTR((char*)(std::filesystem::path(vec_content_path.at(it - 1 - vec_folder_path.size() - vec_file_path.size())).c_str())));
 				}
 
 
@@ -287,12 +203,12 @@ void display(
 
 }
 
-void startWinXSearch(const std::wstring& pathToFolder, bool searchFolders, bool searchContent, vector<string> vecSearchValue)
+void startWinXSearch(const std::wstring& pathToFolder, bool searchFolders, bool searchContent, std::vector<std::string> vecSearchValue)
 {
-	if (!(filesystem::directory_entry(pathToFolder.c_str()).is_directory()))
+	if (!(std::filesystem::directory_entry(pathToFolder.c_str()).is_directory()))
 	{
-		cout << "PATH IS NOT A DIRECTORY!" << endl;
-		cin.ignore();
+		std::cout << "PATH IS NOT A DIRECTORY!" << std::endl;
+		std::cin.ignore();
 		exit;
 	}
 
@@ -321,7 +237,7 @@ void startWinXSearch(const std::wstring& pathToFolder, bool searchFolders, bool 
 
 		bool found = false;
 		std::wstring currentPathW = dirEntry.path().c_str();
-		string currentPath = wide_string_to_string(currentPathW);
+		std::string currentPath = wide_string_to_string(currentPathW);
 
 		//std::cout << currentPath << endl;
 		//std::wcout << currentPathW << endl;
@@ -339,7 +255,7 @@ void startWinXSearch(const std::wstring& pathToFolder, bool searchFolders, bool 
 
 			for (auto& it : vecSearchValue)
 			{
-				if (string::npos != (to_lower_string(wide_string_to_string(dirEntry.path().filename().wstring()))).find(it))
+				if (std::string::npos != (to_lower_string(wide_string_to_string(dirEntry.path().filename().wstring()))).find(it))
 				{
 					vec_folder_path.push_back(dirEntry);
 					found = true;
@@ -352,7 +268,7 @@ void startWinXSearch(const std::wstring& pathToFolder, bool searchFolders, bool 
 		{
 			for (auto& it : vecSearchValue)
 			{
-				if (string::npos != (to_lower_string(wide_string_to_string(dirEntry.path().filename().wstring()))).find(it)) {
+				if (std::string::npos != (to_lower_string(wide_string_to_string(dirEntry.path().filename().wstring()))).find(it)) {
 					vec_file_path.push_back(dirEntry);
 					found = true;
 					break;
@@ -366,7 +282,7 @@ void startWinXSearch(const std::wstring& pathToFolder, bool searchFolders, bool 
 
 			std::wifstream  inputfile;
 			inputfile.open(dirEntry, std::wifstream::in);
-			if (inputfile.rdstate() != ios_base::goodbit)
+			if (inputfile.rdstate() != std::ios_base::goodbit)
 				continue;
 
 
@@ -388,7 +304,7 @@ void startWinXSearch(const std::wstring& pathToFolder, bool searchFolders, bool 
 				{
 					for (auto& searchIt : vecSearchValue)
 					{
-						if (string::npos != (to_lower_string(wide_string_to_string(it))).find(searchIt))
+						if (std::string::npos != (to_lower_string(wide_string_to_string(it))).find(searchIt))
 						{
 							vec_content_path.push_back(dirEntry);
 							found = true;
@@ -402,7 +318,7 @@ void startWinXSearch(const std::wstring& pathToFolder, bool searchFolders, bool 
 			else
 			{
 				try { inputfile.close(); }
-				catch (const std::exception&) { std::cout << "Couldnt close file!" << endl; }
+				catch (const std::exception&) { std::cout << "Couldnt close file!" << std::endl; }
 			}
 			continue;
 		}
@@ -410,7 +326,7 @@ void startWinXSearch(const std::wstring& pathToFolder, bool searchFolders, bool 
 	}// big for loop ending
 	printProgress((currentfilecount / filecount) * 100);
 
-	std::cout << "DONE" << endl;
+	std::cout << "DONE" << std::endl;
 
 
 
@@ -431,8 +347,8 @@ int wmain(int argc, wchar_t* argv[])
 
 	bool searchFolders = true; //option for user to search for folders too
 	bool searchContent = true; //option for user to search through file content too
-	vector<string> VecSearchValue;
-	string to_be_opened = "";
+	std::vector<std::string> VecSearchValue;
+	std::string to_be_opened = "";
 
 
 
@@ -456,7 +372,7 @@ int wmain(int argc, wchar_t* argv[])
 	do
 	{
 
-		cout << "Please provide Strings to be searched for. Seperated by spaces." << endl;
+		std::cout << "Please provide Strings to be searched for. Seperated by spaces." << std::endl;
 
 		std::getline(std::cin, to_be_opened);
 
