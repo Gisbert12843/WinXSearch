@@ -2,12 +2,12 @@
 
 #include "conversions.h"
 
-
+//given a percentage it prints a nice formatted progressbar to the console
 void printProgress(double percentage)
 {
 	double maxPrint = 20;
 	double toPrint = percentage / 5;
-	system("CLS");
+	system("CLS"); 
 	std::cout << "[";
 	for (int i = 0; i < toPrint; i++)
 	{

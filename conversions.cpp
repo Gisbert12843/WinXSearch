@@ -24,6 +24,7 @@ std::string wide_string_to_string(std::wstring wide_string)
 	return result;
 }
 
+
 std::string to_lower_string(std::string s)
 {
 	for (int i = 0; i < s.size(); i++)
@@ -32,6 +33,7 @@ std::string to_lower_string(std::string s)
 	}
 	return s;
 }
+
 
 std::string wide_string_to_string_REF(std::wstring& wide_string)
 {

@@ -6,17 +6,6 @@
 #include "functions.h"
 
 
-
-
-
-
-
-
-
-
-
-
-
 int wmain(int argc, wchar_t* argv[])
 {
 	CoInitializeEx(NULL, COINIT_MULTITHREADED);
@@ -25,7 +14,7 @@ int wmain(int argc, wchar_t* argv[])
 	bool searchFolders = true; //option for user to search for folders too
 	bool searchContent = true; //option for user to search through file content too
 	std::vector<std::string> VecSearchValue;
-	std::string to_be_opened = "";
+	std::string to_be_searched = "";
 
 
 
@@ -51,9 +40,9 @@ int wmain(int argc, wchar_t* argv[])
 
 		std::cout << "Please provide Strings to be searched for. Seperated by spaces." << std::endl;
 
-		std::getline(std::cin, to_be_opened);
+		std::getline(std::cin, to_be_searched);
 
-	} while (!validateInputStringForInitialInput(to_be_opened, VecSearchValue));
+	} while (!validateInputStringForInitialInput(to_be_searched, VecSearchValue));
 
 	startWinXSearch(argv[1], searchFolders, searchContent, VecSearchValue);
 
