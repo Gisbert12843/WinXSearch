@@ -11,12 +11,10 @@ int wmain(int argc, wchar_t* argv[])
 	CoInitializeEx(NULL, COINIT_MULTITHREADED);
 
 
-
 	bool searchFolders = true; //option for user to search for folders too
 	bool searchContent = true; //option for user to search through file content too
 	std::vector<std::string> VecSearchValue;
 	std::string to_be_searched = "";
-
 
 
 	if (argc == 3)

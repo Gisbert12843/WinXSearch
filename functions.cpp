@@ -381,7 +381,6 @@ void startWinXSearch(const std::wstring& pathToFolder, bool searchFolders, bool 
 
 
 
-
 	if (!(std::filesystem::directory_entry(pathToFolder.c_str()).is_directory()))
 	{
 		std::cout << "PATH IS NOT A DIRECTORY!" << std::endl;
