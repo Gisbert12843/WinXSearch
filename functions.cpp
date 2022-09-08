@@ -130,16 +130,20 @@ bool validateInputStringForOpening(std::string input, std::vector<int>& output)
 
 
 void display(
+	auto seconds,
 	std::vector<std::filesystem::directory_entry> vec_folder_path,
 	std::vector<std::filesystem::directory_entry> vec_content_path,
 	std::vector<std::filesystem::directory_entry> vec_file_path)
 
 {
-	Sleep(200);
+	
 
 	std::vector<int> vec_to_be_opened; //storing the identifier for files/folders to be opened
 	system("CLS");
 	int i = 0;
+
+	std::cout << "\nFinnished in " << seconds / 1000000 << " seconds.\n";
+
 	if (!vec_folder_path.empty())
 	{
 		std::cout << "Found Folders\n****************************************************************\n";
@@ -211,54 +215,40 @@ void display(
 }
 
 
-
-
-
-void startWinXSearch(const std::wstring& pathToFolder, bool searchFolders, bool searchContent, std::vector<std::string> vecSearchValue)
+void big_for_loop(int p_i, int p_free_threads, double& currentfilecount, const std::wstring& pathToFolder, double& percentage, double& filecount, bool& searchFolders, bool& searchContent,
+	std::vector<std::string>& vecSearchValue,
+	std::vector<std::filesystem::directory_entry>& vec_folder_path,
+	std::vector<std::filesystem::directory_entry>& vec_content_path,
+	std::vector<std::filesystem::directory_entry>& vec_file_path)
 {
-	int current_thread_count = 0;
-	const int processor_count = std::thread::hardware_concurrency()-1;
 
 
-
-
-	if (!(std::filesystem::directory_entry(pathToFolder.c_str()).is_directory()))
-	{
-		std::cout << "PATH IS NOT A DIRECTORY!" << std::endl;
-		std::cin.ignore();
-		exit;
-	}
-
-	
-
-	std::vector<std::filesystem::directory_entry> vec_folder_path; //stores folder paths of folders including atleast one of the searched strings
-	std::vector<std::filesystem::directory_entry> vec_content_path; //stores file paths of files whichs content includes atleast one of the searched strings
-	std::vector<std::filesystem::directory_entry> vec_file_path; //stores file paths of files including atleast one of the searched strings
-
-
-	double filecount = 0;
-	double currentfilecount = 0;
-	double percentage = 0;
-
-
-
-	std::vector<std::thread>thread_list;
-	if (current_thread_count < processor_count)
-	{
-		std::thread t1(printProgress, std::ref(percentage));
-		thread_list.push_back(std::move(t1));
-	}
-
-	for (const auto& file : std::filesystem::recursive_directory_iterator(pathToFolder)) //answers how many files are present to calculate progress
-		filecount++;
-
-
-
-
-
+	int skipper = 0;
+	int onetime_skipped = 0; 
 	// Iterates over every file/folder in the path of the executable and its subdiretories
 	for (auto& dirEntry : std::filesystem::recursive_directory_iterator(pathToFolder))
 	{
+		//
+		if (onetime_skipped < p_i)
+		{
+			onetime_skipped++;
+			continue;
+		}
+
+		if (skipper < p_free_threads)
+		{
+			if (skipper != 0)
+			{
+				skipper++;
+				continue;
+			}
+			skipper++;
+		}
+		if (skipper == p_free_threads)
+			skipper = 0;
+		// The Above Block handles that the programm only processes every file just once, by skipping x times at the start (x = 1, if it is the first created thread; = 2 if its the second
+		
+
 
 		//Skips invisible files
 		/*DWORD attributes = GetFileAttributes(LPCWSTR((char*)(std::filesystem::path(dirEntry).c_str())));
@@ -268,7 +258,7 @@ void startWinXSearch(const std::wstring& pathToFolder, bool searchFolders, bool 
 		}*/
 
 		currentfilecount++;
-		
+
 		percentage = currentfilecount / filecount * 100;
 
 		bool found = false;
@@ -359,17 +349,93 @@ void startWinXSearch(const std::wstring& pathToFolder, bool searchFolders, bool 
 			}
 			continue;
 		}
-	}// big for loop ending
-	
+	}
+	// big for loop ending
+}
 
+
+
+void startWinXSearch(const std::wstring& pathToFolder, bool searchFolders, bool searchContent, std::vector<std::string> vecSearchValue)
+{
+	auto start = std::chrono::high_resolution_clock::now();
+
+	int current_thread_count = 0;
+	const int processor_count = std::thread::hardware_concurrency() - 1;
+
+
+
+
+	if (!(std::filesystem::directory_entry(pathToFolder.c_str()).is_directory()))
+	{
+		std::cout << "PATH IS NOT A DIRECTORY!" << std::endl;
+		std::cin.ignore();
+		exit;
+	}
+
+
+
+	std::vector<std::filesystem::directory_entry> vec_folder_path; //stores folder paths of folders including atleast one of the searched strings
+	std::vector<std::filesystem::directory_entry> vec_content_path; //stores file paths of files whichs content includes atleast one of the searched strings
+	std::vector<std::filesystem::directory_entry> vec_file_path; //stores file paths of files including atleast one of the searched strings
+
+
+	double filecount = 0;
+	double currentfilecount = 0;
+	double percentage = 0;
+
+
+
+	std::vector<std::thread>thread_list;
+	if (current_thread_count < processor_count)
+	{
+		std::thread t1(printProgress, std::ref(percentage));
+		thread_list.push_back(std::move(t1));
+		current_thread_count++;
+	}
+
+	for (const auto& file : std::filesystem::recursive_directory_iterator(pathToFolder)) //answers how many files are present to calculate progress
+		filecount++;
+
+
+
+	int free_threads = processor_count - current_thread_count;
+
+
+		for (int i = 0; i < free_threads; i++)
+	{
+		std::thread tnew(big_for_loop,
+			std::ref(i),
+			std::ref(free_threads),
+			std::ref(currentfilecount),
+			std::ref(pathToFolder),
+			std::ref(percentage),
+			std::ref(filecount),
+			std::ref(searchFolders),
+			std::ref(searchContent),
+			std::ref(vecSearchValue),
+			std::ref(vec_folder_path),
+			std::ref(vec_content_path),
+			std::ref(vec_file_path));
+
+		thread_list.push_back(std::move(tnew));
+		current_thread_count++;
+	}
+
+	system("CLS");
 	std::cout << "DONE" << std::endl;
 
-	for (int i = 0; i < thread_list.size(); i++)
+	for (int i = 1; i < thread_list.size(); i++)
 	{
 		if (thread_list.at(i).joinable())
 			thread_list.at(i).join();
 	}
+	if (thread_list.at(0).joinable())
+		thread_list.at(0).join();
 
-	display(vec_folder_path, vec_content_path, vec_file_path);
+	auto stop = std::chrono::high_resolution_clock::now();
+	auto duration = duration_cast<std::chrono::microseconds>(stop - start);
+	
+
+	display(duration, vec_folder_path, vec_content_path, vec_file_path);
 }
 
