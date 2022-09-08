@@ -1,26 +1,42 @@
 #include "functions.h"
-
 #include "conversions.h"
 
 //given a percentage it prints a nice formatted progressbar to the console
-void printProgress(double percentage)
+void printProgress(double& percentage)
 {
-	double maxPrint = 20;
-	double toPrint = percentage / 5;
-	system("CLS"); 
-	std::cout << "[";
-	for (int i = 0; i < toPrint; i++)
-	{
-		std::cout << '\|';
-		maxPrint--;
-	}
-	for (int i = 0; i < maxPrint; i++)
-	{
-		std::cout << ' ';
-	}
-	std::cout << "]" << percentage << "%" << std::endl;
-}
+	auto start = std::chrono::high_resolution_clock::now();
+	auto stop = std::chrono::high_resolution_clock::now();
+	auto duration = duration_cast<std::chrono::microseconds>(stop - start);
 
+	while (percentage < 100)
+	{
+		stop = std::chrono::high_resolution_clock::now();
+		duration = duration_cast<std::chrono::microseconds>(stop - start);
+		if (duration.count() >= 300000)
+		{
+			start = std::chrono::high_resolution_clock::now();
+		}
+		else
+			continue;
+
+		double maxPrint = 20;
+		double toPrint = percentage / 5;
+		system("CLS");
+		std::cout << "[";
+		for (int i = 0; i < toPrint; i++)
+		{
+			std::cout << '\|';
+			maxPrint--;
+		}
+		for (int i = 0; i < maxPrint; i++)
+		{
+			std::cout << ' ';
+		}
+		std::cout << "]" << percentage << "%\n";
+	}
+	system("CLS");
+	std::cout << "Listing...\n";
+}
 
 
 
@@ -119,7 +135,7 @@ void display(
 	std::vector<std::filesystem::directory_entry> vec_file_path)
 
 {
-
+	Sleep(200);
 
 	std::vector<int> vec_to_be_opened; //storing the identifier for files/folders to be opened
 	system("CLS");
@@ -171,7 +187,7 @@ void display(
 		if (vec_folder_path.size() >= it)
 		{
 			auto x = (vec_folder_path.at(it - 1));//	(LPCSTR((char*)(filesystem::path(vec_folder_path.at(it - 1)).c_str())))
-			std::cout << x << std::endl;
+			std::cout << x << "\n";
 			std::string askdjasd = (wide_string_to_string(std::filesystem::path(x).wstring()) + "\\\\");
 			const char* y = askdjasd.c_str();
 
@@ -194,8 +210,18 @@ void display(
 
 }
 
+
+
+
+
 void startWinXSearch(const std::wstring& pathToFolder, bool searchFolders, bool searchContent, std::vector<std::string> vecSearchValue)
 {
+	int current_thread_count = 0;
+	const int processor_count = std::thread::hardware_concurrency()-1;
+
+
+
+
 	if (!(std::filesystem::directory_entry(pathToFolder.c_str()).is_directory()))
 	{
 		std::cout << "PATH IS NOT A DIRECTORY!" << std::endl;
@@ -203,34 +229,54 @@ void startWinXSearch(const std::wstring& pathToFolder, bool searchFolders, bool 
 		exit;
 	}
 
+	
+
 	std::vector<std::filesystem::directory_entry> vec_folder_path; //stores folder paths of folders including atleast one of the searched strings
 	std::vector<std::filesystem::directory_entry> vec_content_path; //stores file paths of files whichs content includes atleast one of the searched strings
 	std::vector<std::filesystem::directory_entry> vec_file_path; //stores file paths of files including atleast one of the searched strings
 
+
 	double filecount = 0;
 	double currentfilecount = 0;
+	double percentage = 0;
 
-	for (const auto& file : std::filesystem::recursive_directory_iterator(pathToFolder))
+
+
+	std::vector<std::thread>thread_list;
+	if (current_thread_count < processor_count)
+	{
+		std::thread t1(printProgress, std::ref(percentage));
+		thread_list.push_back(std::move(t1));
+	}
+
+	for (const auto& file : std::filesystem::recursive_directory_iterator(pathToFolder)) //answers how many files are present to calculate progress
 		filecount++;
 
-	int milli_seconds = 1 * 1000;
-	time_t start, end;
-	start = time(0);
 
-	for (auto& dirEntry : std::filesystem::recursive_directory_iterator(pathToFolder)) // Iterates over every file/folder in the path of the executable and its subdiretories
+
+
+
+	// Iterates over every file/folder in the path of the executable and its subdiretories
+	for (auto& dirEntry : std::filesystem::recursive_directory_iterator(pathToFolder))
 	{
-		currentfilecount++;
-		if (time(0) - start == 1)
+
+		//Skips invisible files
+		/*DWORD attributes = GetFileAttributes(LPCWSTR((char*)(std::filesystem::path(dirEntry).c_str())));
+		if (attributes & FILE_ATTRIBUTE_HIDDEN)
 		{
-			printProgress((currentfilecount / filecount) * 100);
-			start = start + 1;
-		}
+			continue;
+		}*/
+
+		currentfilecount++;
+		
+		percentage = currentfilecount / filecount * 100;
 
 		bool found = false;
-		std::wstring currentPathW = dirEntry.path().c_str();
-		std::string currentPath = wide_string_to_string(currentPathW);
 
-		//std::cout << currentPath << endl;
+		//std::wstring currentPathW = dirEntry.path().c_str();
+		//std::string currentPath = wide_string_to_string(currentPathW);
+
+		//std::cout << currentPath << std::endl;
 		//std::wcout << currentPathW << endl;
 		//wcout.flush(); wcout.clear();
 
@@ -313,13 +359,16 @@ void startWinXSearch(const std::wstring& pathToFolder, bool searchFolders, bool 
 			}
 			continue;
 		}
-
 	}// big for loop ending
-	printProgress((currentfilecount / filecount) * 100);
+	
 
 	std::cout << "DONE" << std::endl;
 
-
+	for (int i = 0; i < thread_list.size(); i++)
+	{
+		if (thread_list.at(i).joinable())
+			thread_list.at(i).join();
+	}
 
 	display(vec_folder_path, vec_content_path, vec_file_path);
 }
