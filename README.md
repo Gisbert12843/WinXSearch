@@ -1,4 +1,4 @@
-****Check The New Multithreaded Branch Out!!****<br/>
+****Check The New Multithreaded Release Version Out!!****<br/>
 -----------------------------------------------------
 
 **What it does:**<br/>
