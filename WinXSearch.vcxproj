@@ -133,12 +133,10 @@
     <ClCompile Include="conversions.cpp" />
     <ClCompile Include="functions.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="thread_guard.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="conversions.h" />
     <ClInclude Include="functions.h" />
-    <ClInclude Include="thread_guard.h" />
     <ClInclude Include="wholeinclude.h" />
   </ItemGroup>
   <ItemGroup>
