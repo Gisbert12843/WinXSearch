@@ -11,6 +11,7 @@ int wmain(int argc, wchar_t* argv[])
 	CoInitializeEx(NULL, COINIT_MULTITHREADED);
 
 
+
 	bool searchFolders = true; //option for user to search for folders too
 	bool searchContent = true; //option for user to search through file content too
 	std::vector<std::string> VecSearchValue;
@@ -44,7 +45,20 @@ int wmain(int argc, wchar_t* argv[])
 
 	} while (!validateInputStringForInitialInput(to_be_searched, VecSearchValue));
 
-	startWinXSearch(argv[1], searchFolders, searchContent, VecSearchValue);
+
+
+	#ifdef NDEBUG
+	{
+		startWinXSearch(argv[1], searchFolders, searchContent, VecSearchValue);
+	}
+	#else
+	{
+		//std::cout << wide_string_to_string(std::wstring(argv[0]));
+		std::string s = "C:\\Sciebo";
+		
+		startWinXSearch(StringToWString(s), searchFolders, searchContent, VecSearchValue);
+	}
+	#endif
 
 
 	CoUninitialize();

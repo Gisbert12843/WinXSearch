@@ -2,8 +2,7 @@
 #include "wholeinclude.h"
 
 
-void printProgress(double percentage);
-
+void printProgress(double& percentage);
 
 bool validateInputStringForInitialInput(std::string input, std::vector<std::string>& output);
 

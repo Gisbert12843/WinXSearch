@@ -1,5 +1,12 @@
 #include "conversions.h"
 
+std::wstring StringToWString(const std::string& s)
+{
+	std::wstring ws(s.begin(), s.end());
+
+	return ws;
+}
+
 std::string wide_string_to_string(std::wstring wide_string)
 {
 
