@@ -49,7 +49,11 @@ int wmain(int argc, wchar_t* argv[])
 
 	#ifdef NDEBUG
 	{
-		startWinXSearch(argv[1], searchFolders, searchContent, VecSearchValue);
+		std::string s = "C:\\Sciebo";
+
+		startWinXSearch(StringToWString(s), searchFolders, searchContent, VecSearchValue);
+
+		//startWinXSearch(argv[1], searchFolders, searchContent, VecSearchValue);
 	}
 	#else
 	{
