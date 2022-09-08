@@ -22,6 +22,9 @@ bool validateInputStringForOpening(std::string input, std::vector<int>& output);
 
 
 void display(
+	int processedFiles,
+	int processedFolders,
+	auto seconds,
 	std::vector<std::filesystem::directory_entry> vec_folder_path,
 	std::vector<std::filesystem::directory_entry> vec_content_path,
 	std::vector<std::filesystem::directory_entry> vec_file_path);
