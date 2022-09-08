@@ -145,7 +145,7 @@ void display(
 	system("CLS");
 	int i = 0;
 
-	std::cout << "\nProcessed an astounding " << processedFiles << " files inside of " << processedFolders << " in " << seconds / 1000000 << " seconds.\n\n";
+	std::cout << "\nProcessed an astounding " << processedFiles << " files inside of " << processedFolders << " folders in just " << seconds / 1000000 << " seconds.\n\n";
 
 
 	if (!vec_folder_path.empty())
