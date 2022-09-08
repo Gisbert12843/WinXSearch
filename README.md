@@ -1,3 +1,5 @@
+****New Multithreaded Branch****<br/>
+
 **What it does:**<br/>
 
 searches through every kind of folder/file/content after predefined searchStrings; optional opening of files at the end of the search, designed to work from context menu (setup for that is now available under the release section)
