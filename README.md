@@ -1,4 +1,4 @@
-****Check The New Multithreaded Release Version Out!!****<br/>
+****Check The New Multithreaded Release Version 2.0 Out!!****<br/>
 -----------------------------------------------------
 
 **What it does:**<br/>
