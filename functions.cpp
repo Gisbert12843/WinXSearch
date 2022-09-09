@@ -1,8 +1,16 @@
 #include "functions.h"
 #include "conversions.h"
 
+
 int processedFiles = 0;
 int processedFolders = 0;
+
+bool skipFiles(std::filesystem::recursive_directory_iterator &iter, std::error_code &ec, int &p_free_threads)
+{
+	for (int i = 0; i < p_free_threads - 1; i++) //skips x files every turn so all files only get processesed by one thread ever
+		iter.increment(ec);
+	return true;
+}
 
 //given a percentage it prints a nice formatted progressbar to the console
 void printProgress(double& percentage)
@@ -11,7 +19,7 @@ void printProgress(double& percentage)
 	auto stop = std::chrono::high_resolution_clock::now();
 	auto duration = duration_cast<std::chrono::microseconds>(stop - start);
 
-	while (percentage < 90)
+	while (percentage < 98)
 	{
 		stop = std::chrono::high_resolution_clock::now();
 		duration = duration_cast<std::chrono::microseconds>(stop - start);
@@ -136,9 +144,9 @@ void display(
 	int processedFiles,
 	int processedFolders,
 	auto seconds,
-	std::vector<std::filesystem::directory_entry> vec_folder_path,
-	std::vector<std::filesystem::directory_entry> vec_content_path,
-	std::vector<std::filesystem::directory_entry> vec_file_path)
+	std::vector<std::filesystem::directory_entry> &vec_folder_path,
+	std::vector<std::filesystem::directory_entry> &vec_content_path,
+	std::vector<std::filesystem::directory_entry> &vec_file_path)
 
 {
 	std::vector<int> vec_to_be_opened; //storing the identifier for files/folders to be opened
@@ -226,24 +234,45 @@ void big_for_loop(int p_i, int p_free_threads, double& currentfilecount, const s
 	std::vector<std::filesystem::directory_entry>& vec_file_path)
 {
 	int frickinFilesCounter = 0;
+	int skippedFilesCounter = 0;
 
 	int skipper = 0;
 	int onetime_skipped = 0;
 	// Iterates over every file/folder in the path of the executable and its subdiretories
 
-	for (auto& dirEntry : std::filesystem::recursive_directory_iterator(pathToFolder))
+
+
+	auto iter = std::filesystem::recursive_directory_iterator(pathToFolder, std::filesystem::directory_options::skip_permission_denied);
+	auto end_iter = std::filesystem::end(iter);
+	auto ec = std::error_code();
+	std::filesystem::directory_entry dirEntry;
+
+	for (int i = 0; i < p_i - 1; i++) //onetime skip for each thread (first thread doesnt skip a file ; the 5. does skip 4 files
+		iter.increment(ec);
+
+	for (; iter != end_iter; iter.increment(ec))
 	{
+		dirEntry = std::filesystem::directory_entry(iter->path());
+		if (ec)
+		{
+			continue;
+		}
+		//std::wcout << dirEntry << "\n";
+		// The rest of your loop code here...
+
+
 		// p_i 0-5
 		// free_threads 6
 
 		//case : p_i = 1
 
-		if (onetime_skipped < p_i-1)
-		{
-			onetime_skipped++;
-			continue;
-		}
+		//if (onetime_skipped < p_i - 1)
+		//{
+		//	onetime_skipped++;
+		//	continue;
+		//}
 
+		
 		if (skipper < p_free_threads)
 		{
 			if (skipper != 0)
@@ -252,11 +281,10 @@ void big_for_loop(int p_i, int p_free_threads, double& currentfilecount, const s
 				continue;
 			}
 			skipper++;
-
 		}
 		if (skipper == p_free_threads)
 			skipper = 1;
-		// The Above Block handles that the programm only processes every file just once, by skipping x times at the start (x = 1, if it is the first created thread; = 2 if its the second
+		 //The Above Block handles that the programm only processes every file just once, by skipping x times at the start (x = 1, if it is the first created thread; = 2 if its the second
 
 
 		//Skips invisible files
@@ -267,28 +295,20 @@ void big_for_loop(int p_i, int p_free_threads, double& currentfilecount, const s
 		}*/
 
 		frickinFilesCounter++;
-
 		currentfilecount++;
-
 		percentage = currentfilecount / filecount * 100;
 
-		bool found = false;
-
-		//std::wstring currentPathW = dirEntry.path().c_str();
-		//std::string currentPath = wide_string_to_string(currentPathW);
-
-		//std::cout << currentPath << std::endl;
-		//std::wcout << currentPathW << endl;
-		//wcout.flush(); wcout.clear();
 
 
-		if ((pathToFolder == dirEntry.path().wstring()) || dirEntry.is_symlink()) //skip if iterated file is the running executable or a symlink
+
+		if ((pathToFolder == dirEntry.path().wstring()) || dirEntry.is_symlink(ec)) //skip if iterated file is the running executable or a symlink
 		{
 			continue;
 		}
 
 
 
+		bool found = false;
 		if (std::filesystem::is_directory(dirEntry.path())) // optional: folder as iterated file
 		{
 			if (searchFolders == false)
@@ -307,7 +327,7 @@ void big_for_loop(int p_i, int p_free_threads, double& currentfilecount, const s
 			}
 			continue;
 		}
-		else
+		else //since its not a directory, it has to be a file
 		{
 			for (auto& it : vecSearchValue)
 			{
@@ -319,8 +339,6 @@ void big_for_loop(int p_i, int p_free_threads, double& currentfilecount, const s
 			}
 			if (found || searchContent == false) //continue iterating if search was successfull on filename or content search is disabled
 				continue;
-
-
 
 
 			std::wifstream  inputfile;
@@ -365,8 +383,9 @@ void big_for_loop(int p_i, int p_free_threads, double& currentfilecount, const s
 			}
 			continue;
 		}
-	}
-	// big for loop ending
+		for (int i = 0; i < p_free_threads-1; i++) //skips x files every turn so all files only get processesed by one thread ever
+			iter.increment(ec);
+	}// big for loop ending
 	processedFiles += frickinFilesCounter;
 }
 
@@ -384,7 +403,7 @@ void startWinXSearch(const std::wstring& pathToFolder, bool searchFolders, bool 
 	if (!(std::filesystem::directory_entry(pathToFolder.c_str()).is_directory()))
 	{
 		std::cout << "PATH IS NOT A DIRECTORY!" << std::endl;
-		std::cin.ignore();
+		//std::cin.ignore();
 		exit;
 	}
 
@@ -399,16 +418,25 @@ void startWinXSearch(const std::wstring& pathToFolder, bool searchFolders, bool 
 	double currentfilecount = 0;
 	double percentage = 0;
 
-
-
 	std::vector<std::thread>thread_list;
 
 
+	auto iter = std::filesystem::recursive_directory_iterator(pathToFolder, std::filesystem::directory_options::skip_permission_denied);
+	auto end_iter = std::filesystem::end(iter);
+	auto ec = std::error_code();
 
 
-	for (const auto& file : std::filesystem::recursive_directory_iterator(pathToFolder)) //answers how many files are present to calculate progress
+	system("CLS");
+	std::cout << "Scanning files\n";
+	for (; iter != end_iter; iter.increment(ec))
+	{
+		if (ec)
+		{
+			continue;
+		}
 		filecount++;
-
+	}
+	system("CLS");
 
 	std::thread t1(printProgress, std::ref(percentage));
 	thread_list.push_back(std::move(t1));
@@ -438,11 +466,12 @@ void startWinXSearch(const std::wstring& pathToFolder, bool searchFolders, bool 
 
 	system("CLS");
 
-	for (int i = 0; i < thread_list.size(); i++)
+	for (int i = 1; i < thread_list.size(); i++)
 	{
 		if (thread_list.at(i).joinable())
-			thread_list.at(i).join();
+		thread_list.at(i).join();
 	}
+	thread_list.at(0).join();
 
 	auto stop = std::chrono::high_resolution_clock::now();
 	auto duration = duration_cast<std::chrono::microseconds>(stop - start);

@@ -448,15 +448,15 @@
         {
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:WinXSearch"
-        "ProductCode" = "8:{B268359F-6E89-4CF5-90EF-E9E4A45EFD58}"
-        "PackageCode" = "8:{110CEF96-EB39-484A-A28B-90B98926855D}"
+        "ProductCode" = "8:{F619C0D7-BD44-41E7-A333-0DFDF47AB0F7}"
+        "PackageCode" = "8:{A2B75196-EF68-49AC-BB2C-B2179C028DFE}"
         "UpgradeCode" = "8:{EEB88A61-C181-477D-A824-C2DC4FB69917}"
         "AspNetVersion" = "8:2.0.50727.0"
         "RestartWWWService" = "11:FALSE"
         "RemovePreviousVersions" = "11:TRUE"
         "DetectNewerInstalledVersion" = "11:TRUE"
         "InstallAllUsers" = "11:FALSE"
-        "ProductVersion" = "8:1.1"
+        "ProductVersion" = "8:2.0"
         "Manufacturer" = "8:Kai Oestreich"
         "ARPHELPTELEPHONE" = "8:"
         "ARPHELPLINK" = "8:"
@@ -603,7 +603,7 @@
                                                             "Condition" = "8:"
                                                             "Transitive" = "11:FALSE"
                                                             "ValueTypes" = "3:1"
-                                                            "Value" = "8:[TARGETDIR]WinXSearch.exe %w"
+                                                            "Value" = "8:[TARGETDIR]WinXSearch.exe \"%W\""
                                                             }
                                                         }
                                                     }

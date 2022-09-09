@@ -47,12 +47,19 @@ int wmain(int argc, wchar_t* argv[])
 
 	#ifdef NDEBUG
 	{
+		//std::cout << wide_string_to_string(std::wstring(argv[0]));
+		//std::string s = "C:\\Users\\wwwgi\\Music\\New folder";
+		//s = "C:\\Windows";
+		//startWinXSearch(StringToWString(s), searchFolders, searchContent, VecSearchValue);
+
 		startWinXSearch(argv[1], searchFolders, searchContent, VecSearchValue);
 	}
 	#else
 	{
 		//std::cout << wide_string_to_string(std::wstring(argv[0]));
 		std::string s = "C:\\Sciebo";
+		//s = "C:\\Program Files";
+
 		
 		startWinXSearch(StringToWString(s), searchFolders, searchContent, VecSearchValue);
 	}

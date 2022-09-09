@@ -25,9 +25,9 @@ void display(
 	int processedFiles,
 	int processedFolders,
 	auto seconds,
-	std::vector<std::filesystem::directory_entry> vec_folder_path,
-	std::vector<std::filesystem::directory_entry> vec_content_path,
-	std::vector<std::filesystem::directory_entry> vec_file_path);
+	std::vector<std::filesystem::directory_entry>&vec_folder_path,
+	std::vector<std::filesystem::directory_entry>&vec_content_path,
+	std::vector<std::filesystem::directory_entry>&vec_file_path);
 
 
 void big_for_loop(int p_i, int p_free_threads, double& currentfilecount, const std::wstring& pathToFolder, double& percentage, double& filecount, bool& searchFolders, bool& searchContent,
