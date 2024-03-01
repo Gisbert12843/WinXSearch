@@ -16,4 +16,4 @@
 #include <thread>
 #include <stdlib.h>
 
-
+#include <log_wrapper.h>

@@ -11,8 +11,8 @@ int wmain(int argc, wchar_t* argv[])
 	CoInitializeEx(NULL, COINIT_MULTITHREADED);
 
 
-	bool searchFolders = true; //option for user to search for folders too
-	bool searchContent = true; //option for user to search through file content too
+	bool searchFolders = false; //option for user to search for folders too
+	bool searchContent = false; //option for user to search through file content too
 	std::vector<std::string> VecSearchValue;
 	std::string to_be_searched = "";
 
@@ -20,18 +20,35 @@ int wmain(int argc, wchar_t* argv[])
 	if (argc == 3)
 	{
 		if (argv[2] == L"-F" || argv[2] == L"-f")
+		{
 			searchFolders = true;
+			std::cout << "Searching for Foldernames - Activated\n";
+		}
 		else
 			if (argv[2] == L"-C" || argv[2] == L"-c")
+			{
 				searchContent = true;
+				std::cout << "Searching in Filecontent - Activated\n";
+			}
 	}
-	if (argc == 4)
+	else if (argc == 4)
 	{
 		if (argv[3] == L"-F" || argv[3] == L"-f")
+		{
 			searchFolders = true;
+			std::cout << "Searching for Foldernames - Activated\n";
+		}
 		else
 			if (argv[3] == L"-C" || argv[3] == L"-c")
+			{
 				searchContent = true;
+				std::cout << "Searching in Filecontent - Activated\n";
+			}
+	}
+	else
+	{
+		std::cout << "Searching for Foldernames - Deactivated\n";
+		std::cout << "Searching in Filecontent - Deactivated\n";
 	}
 
 	do
@@ -44,26 +61,32 @@ int wmain(int argc, wchar_t* argv[])
 	} while (!validateInputStringForInitialInput(to_be_searched, VecSearchValue));
 
 
+	std::cout << "Searching for: \"" << VecSearchValue.at(0) << "\"\n";
 
-	#ifdef NDEBUG
+#ifdef NDEBUG
 	{
 		//std::cout << wide_string_to_string(std::wstring(argv[0]));
 		//std::string s = "C:\\Users\\wwwgi\\Music\\New folder";
 		//s = "C:\\Windows";
 		//startWinXSearch(StringToWString(s), searchFolders, searchContent, VecSearchValue);
+		do_log << "Start search in: \"" << std::filesystem::path(argv[1]).string() << "\"\n";
 
-		startWinXSearch(argv[1], searchFolders, searchContent, VecSearchValue);
+
+
+		startWinXSearch(std::filesystem::path(argv[1]), 1, 1, VecSearchValue);
 	}
-	#else
+#endif
+
+#ifndef NDEBUG
 	{
 		//std::cout << wide_string_to_string(std::wstring(argv[0]));
-		std::string s = "C:\\Sciebo";
+		std::string s = "C:\\Users\\Kai\\Sciebo\\Projects\\Gisberts_STL\\mqtt_library";
 		//s = "C:\\Program Files";
+		do_log << "Start search in: \""<< std::filesystem::path(s).string() << "\"\n";
 
-		
-		startWinXSearch(StringToWString(s), searchFolders, searchContent, VecSearchValue);
+		startWinXSearch(std::filesystem::path(s), true, true, VecSearchValue);
 	}
-	#endif
+#endif
 
 
 	CoUninitialize();

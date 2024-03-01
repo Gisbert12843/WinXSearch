@@ -30,11 +30,11 @@ void display(
 	std::vector<std::filesystem::directory_entry>&vec_file_path);
 
 
-void big_for_loop(int p_i, int p_free_threads, double& currentfilecount, const std::wstring& pathToFolder, double& percentage, double& filecount, bool& searchFolders, bool& searchContent,
+void big_for_loop(int p_i, int total_threads, double& currentfilecount, const std::filesystem::path& pathToFolder, double& percentage, double& filecount, bool& searchFolders, bool& searchContent,
 	std::vector<std::string>& vecSearchValue,
 	std::vector<std::filesystem::directory_entry>& vec_folder_path,
 	std::vector<std::filesystem::directory_entry>& vec_content_path,
 	std::vector<std::filesystem::directory_entry>& vec_file_path);
 
 
-void startWinXSearch(const std::wstring& pathToFolder, bool searchFolders, bool searchContent, std::vector<std::string> vecSearchValue);
+void startWinXSearch(const std::filesystem::path pathToFolder, bool searchFolders, bool searchContent, std::vector<std::string> vecSearchValue);

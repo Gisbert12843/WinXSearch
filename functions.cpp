@@ -5,7 +5,7 @@
 int processedFiles = 0;
 int processedFolders = 0;
 
-bool skipFiles(std::filesystem::recursive_directory_iterator &iter, std::error_code &ec, int &p_free_threads)
+bool skipFiles(std::filesystem::recursive_directory_iterator& iter, std::error_code& ec, int& p_free_threads)
 {
 	for (int i = 0; i < p_free_threads - 1; i++) //skips x files every turn so all files only get processesed by one thread ever
 		iter.increment(ec);
@@ -13,23 +13,49 @@ bool skipFiles(std::filesystem::recursive_directory_iterator &iter, std::error_c
 }
 
 //given a percentage it prints a nice formatted progressbar to the console
+
+//TODO	Let it track a static int of how many chars have been written the last time, then just set position to 0,0 and overwrite the locations to whatever string to write
+//		is longer the old one or the new one
+//void printProgress(double& percentage)
+//{
+//	auto start = std::chrono::high_resolution_clock::now();
+//	auto stop = std::chrono::high_resolution_clock::now();
+//	auto duration = duration_cast<std::chrono::microseconds>(stop - start);
+//
+//	while (percentage < 98)
+//	{
+//		stop = std::chrono::high_resolution_clock::now();
+//		duration = duration_cast<std::chrono::microseconds>(stop - start);
+//		if (duration.count() >= 300000)
+//		{
+//			start = std::chrono::high_resolution_clock::now();
+//		}
+//		else
+//			continue;
+//
+//		double maxPrint = 20;
+//		double toPrint = percentage / 5;
+//		system("CLS");
+//		std::cout << "[";
+//		for (int i = 0; i < toPrint; i++)
+//		{
+//			std::cout << '\|';
+//			maxPrint--;
+//		}
+//		for (int i = 0; i < maxPrint; i++)
+//		{
+//			std::cout << ' ';
+//		}
+//		std::cout << "]" << percentage << "%\n";
+//	}
+//	system("CLS");
+//	std::cout << "Listing...\n";
+//}
+
 void printProgress(double& percentage)
 {
-	auto start = std::chrono::high_resolution_clock::now();
-	auto stop = std::chrono::high_resolution_clock::now();
-	auto duration = duration_cast<std::chrono::microseconds>(stop - start);
-
 	while (percentage < 98)
 	{
-		stop = std::chrono::high_resolution_clock::now();
-		duration = duration_cast<std::chrono::microseconds>(stop - start);
-		if (duration.count() >= 300000)
-		{
-			start = std::chrono::high_resolution_clock::now();
-		}
-		else
-			continue;
-
 		double maxPrint = 20;
 		double toPrint = percentage / 5;
 		system("CLS");
@@ -44,9 +70,9 @@ void printProgress(double& percentage)
 			std::cout << ' ';
 		}
 		std::cout << "]" << percentage << "%\n";
+		std::this_thread::sleep_for(std::chrono::milliseconds(500));
 	}
 	system("CLS");
-	std::cout << "Listing...\n";
 }
 
 
@@ -144,9 +170,9 @@ void display(
 	int processedFiles,
 	int processedFolders,
 	auto seconds,
-	std::vector<std::filesystem::directory_entry> &vec_folder_path,
-	std::vector<std::filesystem::directory_entry> &vec_content_path,
-	std::vector<std::filesystem::directory_entry> &vec_file_path)
+	std::vector<std::filesystem::directory_entry>& vec_folder_path,
+	std::vector<std::filesystem::directory_entry>& vec_content_path,
+	std::vector<std::filesystem::directory_entry>& vec_file_path)
 
 {
 	std::vector<int> vec_to_be_opened; //storing the identifier for files/folders to be opened
@@ -227,7 +253,7 @@ void display(
 }
 
 
-void big_for_loop(int p_i, int p_free_threads, double& currentfilecount, const std::wstring& pathToFolder, double& percentage, double& filecount, bool& searchFolders, bool& searchContent,
+void big_for_loop(int p_i, int total_threads, double& currentfilecount, const std::filesystem::path& pathToFolder, double& percentage, double& filecount, bool& searchFolders, bool& searchContent,
 	std::vector<std::string>& vecSearchValue,
 	std::vector<std::filesystem::directory_entry>& vec_folder_path,
 	std::vector<std::filesystem::directory_entry>& vec_content_path,
@@ -236,19 +262,31 @@ void big_for_loop(int p_i, int p_free_threads, double& currentfilecount, const s
 	int frickinFilesCounter = 0;
 	int skippedFilesCounter = 0;
 
-	int skipper = 0;
-	int onetime_skipped = 0;
+	bool onetime_skipped = false;
 	// Iterates over every file/folder in the path of the executable and its subdiretories
 
 
 
 	auto iter = std::filesystem::recursive_directory_iterator(pathToFolder, std::filesystem::directory_options::skip_permission_denied);
 	auto end_iter = std::filesystem::end(iter);
+
 	auto ec = std::error_code();
+
 	std::filesystem::directory_entry dirEntry;
 
-	for (int i = 0; i < p_i - 1; i++) //onetime skip for each thread (first thread doesnt skip a file ; the 5. does skip 4 files
+	do_log << "Started new Thread with: p_i:" << p_i << ", Total_Threads:" << total_threads << ".\n";
+
+
+
+
+	for (int i = 0; iter != end_iter && i < p_i - 1; i++) //onetime skip for each thread (first thread doesnt skip a file ; the 5. does skip 4 files
+	{
+		if (iter == end_iter)
+		{
+			return;
+		}
 		iter.increment(ec);
+	}
 
 	for (; iter != end_iter; iter.increment(ec))
 	{
@@ -261,38 +299,32 @@ void big_for_loop(int p_i, int p_free_threads, double& currentfilecount, const s
 		// The rest of your loop code here...
 
 
-		// p_i 0-5
-		// free_threads 6
-
-		//case : p_i = 1
-
-		//if (onetime_skipped < p_i - 1)
-		//{
-		//	onetime_skipped++;
-		//	continue;
-		//}
-
-		
-		if (skipper < p_free_threads)
+		if (onetime_skipped)
 		{
-			if (skipper != 0)
+			for (int i = 0; iter != end_iter && i < total_threads; i++) //onetime skip for each thread (first thread doesnt skip a file ; the 5. does skip 4 files
 			{
-				skipper++;
-				continue;
+				if (iter == end_iter)
+				{
+					processedFiles += frickinFilesCounter;
+					return;
+				}
+				iter.increment(ec);
 			}
-			skipper++;
 		}
-		if (skipper == p_free_threads)
-			skipper = 1;
-		 //The Above Block handles that the programm only processes every file just once, by skipping x times at the start (x = 1, if it is the first created thread; = 2 if its the second
 
 
-		//Skips invisible files
-		/*DWORD attributes = GetFileAttributes(LPCWSTR((char*)(std::filesystem::path(dirEntry).c_str())));
-		if (attributes & FILE_ATTRIBUTE_HIDDEN)
-		{
-			continue;
-		}*/
+
+
+
+		//The Above Block handles that the programm only processes every file just once, by skipping x times at the start (x = 1, if it is the first created thread; = 2 if its the second
+
+
+	   //Skips invisible files
+	   /*DWORD attributes = GetFileAttributes(LPCWSTR((char*)(std::filesystem::path(dirEntry).c_str())));
+	   if (attributes & FILE_ATTRIBUTE_HIDDEN)
+	   {
+		   continue;
+	   }*/
 
 		frickinFilesCounter++;
 		currentfilecount++;
@@ -303,6 +335,7 @@ void big_for_loop(int p_i, int p_free_threads, double& currentfilecount, const s
 
 		if ((pathToFolder == dirEntry.path().wstring()) || dirEntry.is_symlink(ec)) //skip if iterated file is the running executable or a symlink
 		{
+			do_log << "Skipped Item: \"" << dirEntry.path().string() << "\" Reason: Symlink | SameAsExecutable\n";
 			continue;
 		}
 
@@ -312,9 +345,13 @@ void big_for_loop(int p_i, int p_free_threads, double& currentfilecount, const s
 		if (std::filesystem::is_directory(dirEntry.path())) // optional: folder as iterated file
 		{
 			if (searchFolders == false)
+			{
+				do_log << "Skipped Folder: \"" << dirEntry.path().string() << "\" Reason: FolderNameSearch deactivated\n";
 				continue;
+			}
 
 			processedFolders++;
+			do_log << "Processing Folder: \"" << dirEntry.path().string() << "\"\n";
 
 			for (auto& it : vecSearchValue)
 			{
@@ -329,6 +366,8 @@ void big_for_loop(int p_i, int p_free_threads, double& currentfilecount, const s
 		}
 		else //since its not a directory, it has to be a file
 		{
+			do_log << "Processing File: \"" << dirEntry.path().string() << "\"\n";
+
 			for (auto& it : vecSearchValue)
 			{
 				if (std::string::npos != (to_lower_string(wide_string_to_string(dirEntry.path().filename().wstring()))).find(it)) {
@@ -383,27 +422,26 @@ void big_for_loop(int p_i, int p_free_threads, double& currentfilecount, const s
 			}
 			continue;
 		}
-		for (int i = 0; i < p_free_threads-1; i++) //skips x files every turn so all files only get processesed by one thread ever
-			iter.increment(ec);
-	}// big for loop ending
+	}
 	processedFiles += frickinFilesCounter;
 }
 
 
 
-void startWinXSearch(const std::wstring& pathToFolder, bool searchFolders, bool searchContent, std::vector<std::string> vecSearchValue)
+void startWinXSearch(const std::filesystem::path pathToFolder, bool searchFolders, bool searchContent, std::vector<std::string> vecSearchValue)
 {
 	auto start = std::chrono::high_resolution_clock::now();
 
 	int current_thread_count = 1;
-	const int processor_count = std::thread::hardware_concurrency();
+	int processor_count = std::thread::hardware_concurrency();
 
-
+	do_log << "Found " << processor_count << " CPUs.\n";
+	std::cin.ignore();
 
 	if (!(std::filesystem::directory_entry(pathToFolder.c_str()).is_directory()))
 	{
 		std::cout << "PATH IS NOT A DIRECTORY!" << std::endl;
-		//std::cin.ignore();
+		std::cin.ignore();
 		exit;
 	}
 
@@ -426,7 +464,8 @@ void startWinXSearch(const std::wstring& pathToFolder, bool searchFolders, bool 
 	auto ec = std::error_code();
 
 
-	system("CLS");
+	//Calculates Amount of Files
+	//system("CLS");
 	std::cout << "Scanning files\n";
 	for (; iter != end_iter; iter.increment(ec))
 	{
@@ -436,19 +475,21 @@ void startWinXSearch(const std::wstring& pathToFolder, bool searchFolders, bool 
 		}
 		filecount++;
 	}
-	system("CLS");
+	//system("CLS");
 
-	std::thread t1(printProgress, std::ref(percentage));
-	thread_list.push_back(std::move(t1));
-	current_thread_count++;
 
-	int free_threads = processor_count - current_thread_count;
+	//Starts ProgressBar Thread
+	//std::thread t1(printProgress, std::ref(percentage));
+	//thread_list.push_back(std::move(t1));
+	//current_thread_count++;
 
-	for (int i = 0; i < free_threads; i++)
+	do_log << "Starting big_for_loop\n";
+
+	for (int i = 0; i < processor_count; i++)
 	{
 		std::thread tnew(big_for_loop,
 			std::ref(i),
-			std::ref(free_threads),
+			std::ref(processor_count),
 			std::ref(currentfilecount),
 			std::ref(pathToFolder),
 			std::ref(percentage),
@@ -463,13 +504,14 @@ void startWinXSearch(const std::wstring& pathToFolder, bool searchFolders, bool 
 		thread_list.push_back(std::move(tnew));
 		current_thread_count++;
 	}
+	std::cin.ignore();
 
 	system("CLS");
 
 	for (int i = 1; i < thread_list.size(); i++)
 	{
 		if (thread_list.at(i).joinable())
-		thread_list.at(i).join();
+			thread_list.at(i).join();
 	}
 	thread_list.at(0).join();
 
