@@ -82,7 +82,7 @@ int wmain(int argc, wchar_t* argv[])
 		//std::cout << wide_string_to_string(std::wstring(argv[0]));
 		std::string s = "C:\\Users\\Kai\\Sciebo\\Projects\\Gisberts_STL\\mqtt_library";
 		//s = "C:\\Program Files";
-		do_log << "Start search in: \""<< std::filesystem::path(s).string() << "\"\n";
+		debug_log << "Start search in: \""<< std::filesystem::path(s).string() << "\"\n";
 
 		startWinXSearch(std::filesystem::path(s), true, true, VecSearchValue);
 	}

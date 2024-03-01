@@ -1,6 +1,12 @@
 #include "functions.h"
 #include "conversions.h"
 
+//void big_for_loop(int p_i, int total_threads, double& currentfilecount, const std::filesystem::path& pathToFolder, double& percentage, double& filecount, bool& searchFolders, bool& searchContent,
+//	std::vector<std::string>& vecSearchValue,
+//	std::vector<std::filesystem::directory_entry>& vec_folder_path,
+//	std::vector<std::filesystem::directory_entry>& vec_content_path,
+//	std::vector<std::filesystem::directory_entry>& vec_file_path);
+
 
 int processedFiles = 0;
 int processedFolders = 0;
@@ -253,179 +259,6 @@ void display(
 }
 
 
-void big_for_loop(int p_i, int total_threads, double& currentfilecount, const std::filesystem::path& pathToFolder, double& percentage, double& filecount, bool& searchFolders, bool& searchContent,
-	std::vector<std::string>& vecSearchValue,
-	std::vector<std::filesystem::directory_entry>& vec_folder_path,
-	std::vector<std::filesystem::directory_entry>& vec_content_path,
-	std::vector<std::filesystem::directory_entry>& vec_file_path)
-{
-	int frickinFilesCounter = 0;
-	int skippedFilesCounter = 0;
-
-	bool onetime_skipped = false;
-	// Iterates over every file/folder in the path of the executable and its subdiretories
-
-
-
-	auto iter = std::filesystem::recursive_directory_iterator(pathToFolder, std::filesystem::directory_options::skip_permission_denied);
-	auto end_iter = std::filesystem::end(iter);
-
-	auto ec = std::error_code();
-
-	std::filesystem::directory_entry dirEntry;
-
-	do_log << "Started new Thread with: p_i:" << p_i << ", Total_Threads:" << total_threads << ".\n";
-
-
-
-
-	for (int i = 0; iter != end_iter && i < p_i - 1; i++) //onetime skip for each thread (first thread doesnt skip a file ; the 5. does skip 4 files
-	{
-		if (iter == end_iter)
-		{
-			return;
-		}
-		iter.increment(ec);
-	}
-
-	for (; iter != end_iter; iter.increment(ec))
-	{
-		dirEntry = std::filesystem::directory_entry(iter->path());
-		if (ec)
-		{
-			continue;
-		}
-		//std::wcout << dirEntry << "\n";
-		// The rest of your loop code here...
-
-
-		if (onetime_skipped)
-		{
-			for (int i = 0; iter != end_iter && i < total_threads; i++) //onetime skip for each thread (first thread doesnt skip a file ; the 5. does skip 4 files
-			{
-				if (iter == end_iter)
-				{
-					processedFiles += frickinFilesCounter;
-					return;
-				}
-				iter.increment(ec);
-			}
-		}
-
-
-
-
-
-		//The Above Block handles that the programm only processes every file just once, by skipping x times at the start (x = 1, if it is the first created thread; = 2 if its the second
-
-
-	   //Skips invisible files
-	   /*DWORD attributes = GetFileAttributes(LPCWSTR((char*)(std::filesystem::path(dirEntry).c_str())));
-	   if (attributes & FILE_ATTRIBUTE_HIDDEN)
-	   {
-		   continue;
-	   }*/
-
-		frickinFilesCounter++;
-		currentfilecount++;
-		percentage = currentfilecount / filecount * 100;
-
-
-
-
-		if ((pathToFolder == dirEntry.path().wstring()) || dirEntry.is_symlink(ec)) //skip if iterated file is the running executable or a symlink
-		{
-			do_log << "Skipped Item: \"" << dirEntry.path().string() << "\" Reason: Symlink | SameAsExecutable\n";
-			continue;
-		}
-
-
-
-		bool found = false;
-		if (std::filesystem::is_directory(dirEntry.path())) // optional: folder as iterated file
-		{
-			if (searchFolders == false)
-			{
-				do_log << "Skipped Folder: \"" << dirEntry.path().string() << "\" Reason: FolderNameSearch deactivated\n";
-				continue;
-			}
-
-			processedFolders++;
-			do_log << "Processing Folder: \"" << dirEntry.path().string() << "\"\n";
-
-			for (auto& it : vecSearchValue)
-			{
-				if (std::string::npos != (to_lower_string(wide_string_to_string(dirEntry.path().filename().wstring()))).find(it))
-				{
-					vec_folder_path.push_back(dirEntry);
-					found = true;
-					break;
-				}
-			}
-			continue;
-		}
-		else //since its not a directory, it has to be a file
-		{
-			do_log << "Processing File: \"" << dirEntry.path().string() << "\"\n";
-
-			for (auto& it : vecSearchValue)
-			{
-				if (std::string::npos != (to_lower_string(wide_string_to_string(dirEntry.path().filename().wstring()))).find(it)) {
-					vec_file_path.push_back(dirEntry);
-					found = true;
-					break;
-				}
-			}
-			if (found || searchContent == false) //continue iterating if search was successfull on filename or content search is disabled
-				continue;
-
-
-			std::wifstream  inputfile;
-			inputfile.open(dirEntry, std::wifstream::in);
-			if (inputfile.rdstate() != std::ios_base::goodbit)
-				continue;
-
-
-			if (inputfile.good() && inputfile) // optional: filecontent as target
-			{
-
-				std::wstring checkedString;
-				std::vector<std::wstring> vecOfStr; //File Content as Vector of Strings
-
-				while (std::getline(inputfile, checkedString)) // Every line of the inputfile gets its own string in the vector
-				{
-					vecOfStr.push_back(checkedString);
-				}
-				inputfile.close();
-
-
-
-				for (auto& it : vecOfStr) // checks every string of the vector for occurences of the wanted word and replaces it
-				{
-					for (auto& searchIt : vecSearchValue)
-					{
-						if (std::string::npos != (to_lower_string(wide_string_to_string(it))).find(searchIt))
-						{
-							vec_content_path.push_back(dirEntry);
-							found = true;
-							break;
-						}
-					}
-					if (found)
-						break;
-				}
-			}
-			else
-			{
-				try { inputfile.close(); }
-				catch (const std::exception&) { std::cout << "Couldnt close file!" << std::endl; }
-			}
-			continue;
-		}
-	}
-	processedFiles += frickinFilesCounter;
-}
-
 
 
 void startWinXSearch(const std::filesystem::path pathToFolder, bool searchFolders, bool searchContent, std::vector<std::string> vecSearchValue)
@@ -435,8 +268,8 @@ void startWinXSearch(const std::filesystem::path pathToFolder, bool searchFolder
 	int current_thread_count = 1;
 	int processor_count = std::thread::hardware_concurrency();
 
-	do_log << "Found " << processor_count << " CPUs.\n";
-	std::cin.ignore();
+	debug_log << "Found " << processor_count << " CPUs.\n";
+
 
 	if (!(std::filesystem::directory_entry(pathToFolder.c_str()).is_directory()))
 	{
@@ -483,12 +316,32 @@ void startWinXSearch(const std::filesystem::path pathToFolder, bool searchFolder
 	//thread_list.push_back(std::move(t1));
 	//current_thread_count++;
 
-	do_log << "Starting big_for_loop\n";
+	debug_log << "Starting big_for_loop\n";
 
-	for (int i = 0; i < processor_count; i++)
+	//std::thread tnew(big_for_loop,
+	//	1,
+	//	1,
+	//	std::ref(currentfilecount),
+	//	std::ref(pathToFolder),
+	//	std::ref(percentage),
+	//	std::ref(filecount),
+	//	std::ref(searchFolders),
+	//	std::ref(searchContent),
+	//	std::ref(vecSearchValue),
+	//	std::ref(vec_folder_path),
+	//	std::ref(vec_content_path),
+	//	std::ref(vec_file_path));
+
+	//thread_list.push_back(std::move(tnew));
+	//current_thread_count++;
+
+
+
+
+	for (int i = 1; i <= processor_count; i++)
 	{
 		std::thread tnew(big_for_loop,
-			std::ref(i),
+			i,
 			std::ref(processor_count),
 			std::ref(currentfilecount),
 			std::ref(pathToFolder),
@@ -504,6 +357,8 @@ void startWinXSearch(const std::filesystem::path pathToFolder, bool searchFolder
 		thread_list.push_back(std::move(tnew));
 		current_thread_count++;
 	}
+
+
 	std::cin.ignore();
 
 	system("CLS");
@@ -521,4 +376,192 @@ void startWinXSearch(const std::filesystem::path pathToFolder, bool searchFolder
 	processedFiles -= processedFolders;
 	display(processedFiles, processedFolders, duration.count(), vec_folder_path, vec_content_path, vec_file_path);
 }
+
+
+void big_for_loop(int p_i, int total_threads, double& currentfilecount, const std::filesystem::path& pathToFolder, double& percentage, double& filecount, bool& searchFolders, bool& searchContent,
+	std::vector<std::string>& vecSearchValue,
+	std::vector<std::filesystem::directory_entry>& vec_folder_path,
+	std::vector<std::filesystem::directory_entry>& vec_content_path,
+	std::vector<std::filesystem::directory_entry>& vec_file_path)
+{
+	int frickinFilesCounter = 0;
+	int skippedFilesCounter = 0;
+
+	bool onetime_skipped = false;
+	// Iterates over every file/folder in the path of the executable and its subdiretories
+
+	debug_log << "Started new Thread with: p_i:" << p_i << ", Total_Threads:" << total_threads << ".\n";
+
+
+
+
+	//file iterator loop
+	try {
+		// Check if the given path exists and is a directory
+		if (std::filesystem::exists(pathToFolder) && std::filesystem::is_directory(pathToFolder)) {
+			for (std::filesystem::recursive_directory_iterator dirIter(pathToFolder), end; dirIter != end; ++dirIter) {
+				// Print the path of the current file or directory
+
+				const auto& entry = *dirIter;
+
+				if (onetime_skipped)
+				{
+					int x = 1;
+					for (; x < total_threads; x++) //onetime skip for each thread (first thread doesnt skip a file ; the 5. does skip 4 files
+					{
+						++dirIter;
+						if (dirIter == end)
+						{
+							processedFiles += frickinFilesCounter;
+							return;
+						}
+					}
+					if(x>1) debug_log << "Thread " << p_i << " skipped " << x << " files at this iteration.\n";
+				}
+				else
+				{
+					int counter = 0;
+					for (int i = 0; i < (p_i - 1); i++)
+					{
+						++dirIter;
+						if (dirIter == end)
+						{
+							processedFiles += frickinFilesCounter;
+							return;
+						}
+						counter++;
+					}
+					debug_log << "Thread Nr.:" << p_i << " skipped " << counter << " files at the start.\n";
+					onetime_skipped = true;
+
+				}
+
+				debug_log << "Thread Nr.:" << p_i << " is processing File: \"" << entry.path().string() << "\"\n";
+
+				frickinFilesCounter++;
+				currentfilecount++;
+				percentage = currentfilecount / filecount * 100;
+
+				if (entry.is_symlink()) //skip if iterated file is a symlink
+				{
+					debug_log << "Thread Nr.:" << p_i << " skipped Item: \"" << entry.path().string() << "\" Reason: Symlink\n";
+					continue;
+				}
+
+			}
+			processedFiles += frickinFilesCounter;
+		}
+		else {
+			std::cout << "The path does not exist or is not a directory." << std::endl;
+		}
+	}
+	catch (const std::filesystem::filesystem_error& e) {
+		std::cerr << e.what() << std::endl;
+		processedFiles += frickinFilesCounter;
+		return;
+	}
+	catch (const std::exception& e) {
+		std::cerr << "An error occurred: " << e.what() << std::endl;
+		processedFiles += frickinFilesCounter;
+		return;
+	}
+
+
+
+
+
+
+
+
+
+
+
+
+
+	//bool found = false;
+	//if (std::filesystem::is_directory(dirEntry.path())) // optional: folder as iterated file
+	//{
+	//	if (searchFolders == false)
+	//	{
+	//		do_log << "Skipped Folder: \"" << dirEntry.path().string() << "\" Reason: FolderNameSearch deactivated\n";
+	//		continue;
+	//	}
+
+	//	processedFolders++;
+	//	do_log << "Processing Folder: \"" << dirEntry.path().string() << "\"\n";
+
+	//	for (auto& it : vecSearchValue)
+	//	{
+	//		if (std::string::npos != (to_lower_string(wide_string_to_string(dirEntry.path().filename().wstring()))).find(it))
+	//		{
+	//			vec_folder_path.push_back(dirEntry);
+	//			found = true;
+	//			break;
+	//		}
+	//	}
+	//	continue;
+	//}
+	//else //since its not a directory, it has to be a file
+	//{
+	//	do_log << "Processing File: \"" << dirEntry.path().string() << "\"\n";
+
+	//	for (auto& it : vecSearchValue)
+	//	{
+	//		if (std::string::npos != (to_lower_string(wide_string_to_string(dirEntry.path().filename().wstring()))).find(it)) {
+	//			vec_file_path.push_back(dirEntry);
+	//			found = true;
+	//			break;
+	//		}
+	//	}
+	//	if (found || searchContent == false) //continue iterating if search was successfull on filename or content search is disabled
+	//		continue;
+
+
+	//	std::wifstream  inputfile;
+	//	inputfile.open(dirEntry, std::wifstream::in);
+	//	if (inputfile.rdstate() != std::ios_base::goodbit)
+	//		continue;
+
+
+	//	if (inputfile.good() && inputfile) // optional: filecontent as target
+	//	{
+
+	//		std::wstring checkedString;
+	//		std::vector<std::wstring> vecOfStr; //File Content as Vector of Strings
+
+	//		while (std::getline(inputfile, checkedString)) // Every line of the inputfile gets its own string in the vector
+	//		{
+	//			vecOfStr.push_back(checkedString);
+	//		}
+	//		inputfile.close();
+
+
+
+	//		for (auto& it : vecOfStr) // checks every string of the vector for occurences of the wanted word and replaces it
+	//		{
+	//			for (auto& searchIt : vecSearchValue)
+	//			{
+	//				if (std::string::npos != (to_lower_string(wide_string_to_string(it))).find(searchIt))
+	//				{
+	//					vec_content_path.push_back(dirEntry);
+	//					found = true;
+	//					break;
+	//				}
+	//			}
+	//			if (found)
+	//				break;
+	//		}
+	//	}
+	//	else
+	//	{
+	//		try { inputfile.close(); }
+	//		catch (const std::exception&) { std::cout << "Couldnt close file!" << std::endl; }
+	//	}
+	//	continue;
+	//}
+
+}
+
+
+
 
