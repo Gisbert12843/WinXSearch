@@ -15,7 +15,7 @@
     {
         "Entry"
         {
-        "MsmKey" = "8:_D324A1E00D37476F9D143385C4722A0B"
+        "MsmKey" = "8:_AE8BAAA610584E4FBD4B0799DFBADC4E"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -44,6 +44,14 @@
             "PrerequisitesLocation" = "2:1"
             "Url" = "8:"
             "ComponentsUrl" = "8:"
+                "Items"
+                {
+                    "{EDC2488A-8267-493A-A98E-7D9C3B36CDF3}:.NETFramework,Version=v4.7.2"
+                    {
+                    "Name" = "8:Microsoft .NET Framework 4.7.2 (x86 and x64)"
+                    "ProductCode" = "8:.NETFramework,Version=v4.7.2"
+                    }
+                }
             }
         }
         "Release"
@@ -98,7 +106,7 @@
         }
         "File"
         {
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_D324A1E00D37476F9D143385C4722A0B"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_AE8BAAA610584E4FBD4B0799DFBADC4E"
             {
             "SourcePath" = "8:..\\x64\\Release\\WinXSearch.exe"
             "TargetName" = "8:WinXSearch.exe"
@@ -186,7 +194,7 @@
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:WinXSearch_Setup"
         "ProductCode" = "8:{A56BF6DB-00C0-477B-B995-532700C920A2}"
-        "PackageCode" = "8:{910CFA5E-3664-438F-89A0-4BA6D0E3A8E6}"
+        "PackageCode" = "8:{53BBDCAF-66A5-465E-8367-218FEAFD7FC6}"
         "UpgradeCode" = "8:{1BD97CCD-8B01-4687-AAF3-C6BA5250984F}"
         "AspNetVersion" = "8:2.0.50727.0"
         "RestartWWWService" = "11:FALSE"

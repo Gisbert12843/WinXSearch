@@ -7,6 +7,8 @@ std::wstring StringToWString(const std::string& s)
 	return ws;
 }
 
+
+
 std::string wide_string_to_string(std::wstring wide_string)
 {
 
