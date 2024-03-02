@@ -19,14 +19,14 @@ std::string wide_string_to_string(std::wstring wide_string)
 	}
 
 
-	const auto size_needed = WideCharToMultiByte(CP_UTF8, 0, &wide_string.at(0), (int)wide_string.size(), nullptr, 0, nullptr, nullptr);
+	const auto size_needed = WideCharToMultiByte(CP_UTF8, 0, &wide_string.at(0), (uint64_t)wide_string.size(), nullptr, 0, nullptr, nullptr);
 	if (size_needed <= 0)
 	{
 		throw std::runtime_error("WideCharToMultiByte() failed: " + std::to_string(size_needed));
 	}
 
 	std::string result(size_needed, 0);
-	WideCharToMultiByte(CP_UTF8, 0, &wide_string.at(0), (int)wide_string.size(), &result.at(0), size_needed, nullptr, nullptr);
+	WideCharToMultiByte(CP_UTF8, 0, &wide_string.at(0), (uint64_t)wide_string.size(), &result.at(0), size_needed, nullptr, nullptr);
 
 
 
@@ -36,7 +36,7 @@ std::string wide_string_to_string(std::wstring wide_string)
 
 std::string to_lower_string(std::string s)
 {
-	for (int i = 0; i < s.size(); i++)
+	for (uint64_t i = 0; i < s.size(); i++)
 	{
 		s.at(i) = towlower(s.at(i));
 	}
@@ -51,14 +51,14 @@ std::string wide_string_to_string_REF(std::wstring& wide_string)
 		return "";
 	}
 
-	const auto size_needed = WideCharToMultiByte(CP_UTF8, 0, &wide_string.at(0), (int)wide_string.size(), nullptr, 0, nullptr, nullptr);
+	const auto size_needed = WideCharToMultiByte(CP_UTF8, 0, &wide_string.at(0), (uint64_t)wide_string.size(), nullptr, 0, nullptr, nullptr);
 	if (size_needed <= 0)
 	{
 		throw std::runtime_error("WideCharToMultiByte() failed: " + std::to_string(size_needed));
 	}
 
 	std::string result(size_needed, 0);
-	WideCharToMultiByte(CP_UTF8, 0, &wide_string.at(0), (int)wide_string.size(), &result.at(0), size_needed, nullptr, nullptr);
+	WideCharToMultiByte(CP_UTF8, 0, &wide_string.at(0), (uint64_t)wide_string.size(), &result.at(0), size_needed, nullptr, nullptr);
 	return result;
 }
 
@@ -81,7 +81,7 @@ const wchar_t* GetWC(const char* c)
 std::string convertToPath(std::string x)
 {
 	std::string s = x;
-	for (int it = 0; it < s.size(); it++)
+	for (uint64_t it = 0; it < s.size(); it++)
 	{
 
 		if (s.at(it) == '\\')

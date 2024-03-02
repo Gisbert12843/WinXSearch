@@ -15,10 +15,15 @@ const wchar_t* GetWC(const char* c);
 std::string convertToPath(std::string x);
 
 
+inline std::mutex& getGlobalMutex() {
+    static std::mutex mutex;
+    return mutex;
+}
+
+//this function ensures that whatever thread or translation unit called whatever instantiation of this function will use the same mutex.
+//This accomplishes a thread- and "type"-safe way to update a variable in a parallised/multithreaded enviroment.
 template <typename T, typename X>
-inline void mutual_update(T& to_update, const X& newValue)
-{
-	static std::mutex mutex;
-	std::lock_guard<std::mutex> lock(mutex);
-	to_update = newValue;
+void mutual_update(T& to_update, const X& newValue) {
+    std::lock_guard<std::mutex> lock(getGlobalMutex());
+    to_update = newValue;
 }

@@ -18,19 +18,19 @@ void BrowseToFolder(LPCWSTR filename);
 
 
 //validates inputstring (returns false if wrong input) and transfers input string to vector
-bool validateInputStringForOpeningFinalEntriesInExplorer(std::string input, std::vector<int>& output);
+bool validateInputStringForOpeningFinalEntriesInExplorer(std::string input, std::vector<uint64_t>& output);
 
 
 void display(
-	int processedFiles,
-	int processedFolders,
+	uint64_t processedFiles,
+	uint64_t processedFolders,
 	auto seconds,
 	std::vector<std::filesystem::directory_entry>&vec_folder_path,
 	std::vector<std::filesystem::directory_entry>&vec_content_path,
 	std::vector<std::filesystem::directory_entry>&vec_file_path);
 
 
-void big_for_loop(int p_i, int total_threads, int& currentfilecount, const std::filesystem::path pathToFolder, double& percentage, int& filecount, bool& searchFolders, bool& searchContent,
+void big_for_loop(uint64_t p_i, uint64_t total_threads, uint64_t& currentfilecount, const std::filesystem::path pathToFolder, double& percentage, uint64_t& filecount, bool& searchFolders, bool& searchContent,
 	std::vector<std::string>& vecSearchValue,
 	std::vector<std::filesystem::directory_entry>& vec_folder_path,
 	std::vector<std::filesystem::directory_entry>& vec_content_path,

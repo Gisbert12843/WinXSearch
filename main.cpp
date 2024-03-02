@@ -6,7 +6,7 @@
 #include "functions.h"
 
 
-int main(int argc, char* argv[])
+int main(uint64_t argc, char* argv[])
 {
 	CoInitializeEx(NULL, COINIT_MULTITHREADED);
 
@@ -18,7 +18,7 @@ int main(int argc, char* argv[])
 
 
 
-	for (int i = 2; i < argc; i++)
+	for (uint64_t i = 2; i < argc; i++)
 	{
 		if (std::string(argv[i]) == std::string("-f"))
 		{

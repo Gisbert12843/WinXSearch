@@ -1,28 +1,50 @@
 #include "functions.h"
 #include "conversions.h"
 
-//void big_for_loop(int p_i, int total_threads, double& currentfilecount, const std::filesystem::path& pathToFolder, double& percentage, double& filecount, bool& searchFolders, bool& searchContent,
-//	std::vector<std::string>& vecSearchValue,
-//	std::vector<std::filesystem::directory_entry>& vec_folder_path,
-//	std::vector<std::filesystem::directory_entry>& vec_content_path,
-//	std::vector<std::filesystem::directory_entry>& vec_file_path);
+//represents the total present files in the directory
+uint64_t filecount = 0;
+//represents the total present folders in the directory
+uint64_t foldercount = 0;
 
-int filecount = 0;
-int processedFiles = 0;
-int processedFolders = 0;
-int skipped_files = 0;
-int skipped_folders = 0;
 
-bool skipFiles(std::filesystem::recursive_directory_iterator& iter, std::error_code& ec, int& p_free_threads)
-{
-	for (int i = 0; i < p_free_threads - 1; i++) //skips x files every turn so all files only get processesed by one thread ever
-		iter.increment(ec);
-	return true;
-}
+//represents the final amount of searched files by all threads
+uint64_t processedFiles = 0;
+//represents the final amount of searched folders by all threads
+uint64_t processedFolders = 0;
+
+
+//At any point in time this represents the total number of skipped files combined by all threads.
+uint64_t skipped_files = 0;
+//At any point in time this represents the total number of skipped folders combined by all threads.
+uint64_t skipped_folders = 0;
+
+
+//At any point in time this represents the total number of searched and skipped files combined by all threads.
+uint64_t currentfilecount = 0;
+//At any point in time this represents the total number of searched and skipped folders combined by all threads.
+uint64_t currentfoldercount = 0;
+
+
+//At any point in time this represents the ratio between the currentfilecount and the totalfilecount in percent
+double percentage = 0;
+
+
+
+
+
+
+//bool skipFiles(std::filesystem::recursive_directory_iterator& iter, std::error_code& ec, uint64_t& p_free_threads)
+//{
+//	for (int i = 0; i < p_free_threads - 1; i++) //skips x files every turn so all files only get processesed by one thread ever
+//		iter.increment(ec);
+//	return true;
+//}
+
+
 
 //given a percentage it prints a nice formatted progressbar to the console
 
-//TODO	Let it track a static int of how many chars have been written the last time, then just set position to 0,0 and overwrite the locations to whatever string to write
+//TODO	Let it track a static uint64_t of how many chars have been written the last time, then just set position to 0,0 and overwrite the locations to whatever string to write
 //		is longer the old one or the new one
 //void printProgress(double& percentage)
 //{
@@ -45,12 +67,12 @@ bool skipFiles(std::filesystem::recursive_directory_iterator& iter, std::error_c
 //		double toPrint = percentage / 5;
 //		system("CLS");
 //		std::cout << "[";
-//		for (int i = 0; i < toPrint; i++)
+//		for (uint64_t i = 0; i < toPrint; i++)
 //		{
 //			std::cout << '\|';
 //			maxPrint--;
 //		}
-//		for (int i = 0; i < maxPrint; i++)
+//		for (uint64_t i = 0; i < maxPrint; i++)
 //		{
 //			std::cout << ' ';
 //		}
@@ -68,12 +90,12 @@ bool skipFiles(std::filesystem::recursive_directory_iterator& iter, std::error_c
 //		double toPrint = percentage / 5;
 //		system("CLS");
 //		std::cout << "[";
-//		for (int i = 0; i < toPrint; i++)
+//		for (uint64_t i = 0; i < toPrint; i++)
 //		{
 //			std::cout << '\|';
 //			maxPrint--;
 //		}
-//		for (int i = 0; i < maxPrint; i++)
+//		for (uint64_t i = 0; i < maxPrint; i++)
 //		{
 //			std::cout << ' ';
 //		}
@@ -100,7 +122,7 @@ bool validateInputStringForInitialInput(std::string input, std::vector<std::stri
 std::string getFolderPath(std::string pathOfFile)
 {
 	std::string pathOfFolder = "";
-	for (int i = 0; i < pathOfFile.find_last_of("\\"); i++)
+	for (uint64_t i = 0; i < pathOfFile.find_last_of("\\"); i++)
 	{
 		pathOfFolder += pathOfFile.at(i);
 	}
@@ -136,10 +158,10 @@ void BrowseToFolder(LPCWSTR filename) //thx to "Jonathan Potter" on stackoverflo
 
 
 //validates inputstring (returns false if wrong input) and transfers input string to vector
-bool validateInputStringForOpeningFinalEntriesInExplorer(std::string input, std::vector<int>& output)
+bool validateInputStringForOpeningFinalEntriesInExplorer(std::string input, std::vector<uint64_t>& output)
 {
 	std::string set = "";
-	for (int i = 0; i < input.length(); i++)
+	for (uint64_t i = 0; i < input.length(); i++)
 	{
 		if (isdigit(input.at(i)))
 		{
@@ -166,40 +188,40 @@ bool validateInputStringForOpeningFinalEntriesInExplorer(std::string input, std:
 
 
 void display(
-	int processedFiles,
-	int processedFolders,
+	uint64_t processedFiles,
+	uint64_t processedFolders,
 	auto seconds,
 	std::vector<std::filesystem::directory_entry>& vec_folder_path,
 	std::vector<std::filesystem::directory_entry>& vec_content_path,
 	std::vector<std::filesystem::directory_entry>& vec_file_path)
 
 {
-	std::vector<int> vec_to_be_opened; //storing the identifier for files/folders to be opened
+	std::vector<uint64_t> vec_to_be_opened; //storing the identifier for files/folders to be opened
 	system("CLS");
-	int i = 0;
+	uint64_t i = 0;
 
-	std::cout << "\nProcessed an astounding " << processedFiles << " files (of " << filecount - processedFolders << ") inside of " << processedFolders << " folders in just " << seconds / 1000000 << " seconds.\nSkipped Files : " << skipped_files << "\nSkipped Folders : " << skipped_folders << "\n\n";
+	std::cout << "\nProcessed an astounding " << processedFiles << " files (of " << filecount << ") inside of " << processedFolders << " folders in just " << seconds / 1000000 << " seconds.\nSkipped Files : " << skipped_files << "\nSkipped Folders : " << skipped_folders << "\n\n";
 
 
 
 	if (!vec_folder_path.empty())
 	{
 		std::cout << "Found Folders\n****************************************************************\n";
-		for (int j = 0; j < vec_folder_path.size(); j++, i++)
+		for (uint64_t j = 0; j < vec_folder_path.size(); j++, i++)
 			std::cout << i + 1 << ": " << wide_string_to_string(vec_folder_path.at(j).path().wstring()) << "\"" << std::endl;
 		std::cout << "****************************************************************\n" << std::endl;
 	}
 	if (!vec_file_path.empty())
 	{
 		std::cout << "Found Files\n****************************************************************\n";
-		for (int j = 0; j < vec_file_path.size(); j++, i++)
+		for (uint64_t j = 0; j < vec_file_path.size(); j++, i++)
 			std::cout << i + 1 << ": " << wide_string_to_string(vec_file_path.at(j).path().wstring()) << "\"" << std::endl;
 		std::cout << "****************************************************************\n" << std::endl;
 	}
 	if (!vec_content_path.empty())
 	{
 		std::cout << "Found Content\n****************************************************************\n";
-		for (int j = 0; j < vec_content_path.size(); j++, i++)
+		for (uint64_t j = 0; j < vec_content_path.size(); j++, i++)
 			std::cout << i + 1 << ": " << wide_string_to_string(vec_content_path.at(j).path().wstring()) << "\"" << std::endl;
 		std::cout << "****************************************************************\n" << std::endl;
 	}
@@ -259,8 +281,8 @@ void startWinXSearch(const std::filesystem::path pathToFolder, bool searchFolder
 {
 	auto start = std::chrono::high_resolution_clock::now();
 
-	int current_thread_count = 1;
-	int processor_count = std::thread::hardware_concurrency();
+	uint64_t current_thread_count = 1;
+	uint64_t processor_count = std::thread::hardware_concurrency();
 
 	debug_log << "Found " << processor_count << " CPUs.\n";
 
@@ -279,26 +301,23 @@ void startWinXSearch(const std::filesystem::path pathToFolder, bool searchFolder
 	std::vector<std::filesystem::directory_entry> vec_file_path; //stores file paths of files including atleast one of the searched strings
 
 
-	int currentfilecount = 0;
-	double percentage = 0;
-
 	std::vector<std::thread>thread_list;
 
 
-	auto iter = std::filesystem::recursive_directory_iterator(pathToFolder);
-	auto end_iter = std::filesystem::end(iter);
 	auto ec = std::error_code();
-
 
 	//Calculates Amount of Files
 	std::cout << "Scanning files\n";
-	for (; iter != end_iter; iter.increment(ec))
+	for (std::filesystem::recursive_directory_iterator iter(pathToFolder); iter != std::filesystem::end(iter); iter.increment(ec))
 	{
 		if (ec)
 		{
 			continue;
 		}
-		filecount++;
+		if ((*iter).is_regular_file())
+			filecount++;
+		else if ((*iter).is_directory())
+			foldercount++;
 	}
 
 
@@ -331,7 +350,7 @@ void startWinXSearch(const std::filesystem::path pathToFolder, bool searchFolder
 
 
 
-	for (int i = 1; i <= processor_count; i++)
+	for (uint64_t i = 1; i <= processor_count; i++)
 	{
 		std::thread tnew(big_for_loop,
 			i,
@@ -353,14 +372,15 @@ void startWinXSearch(const std::filesystem::path pathToFolder, bool searchFolder
 
 
 
-	for (int i = 1; i < thread_list.size(); i++)
+	for (uint64_t i = 1; i < thread_list.size(); i++)
 	{
 		if (thread_list.at(i).joinable())
 		{
 			thread_list.at(i).join();
-			percentage = processedFiles / (filecount) * 100;
+			percentage = (processedFiles + skipped_files) / (filecount) * 100;
 		}
 	}
+	percentage = 100;
 	thread_list.at(0).join();
 
 
@@ -368,20 +388,20 @@ void startWinXSearch(const std::filesystem::path pathToFolder, bool searchFolder
 	auto stop = std::chrono::high_resolution_clock::now();
 	auto duration = duration_cast<std::chrono::microseconds>(stop - start);
 
-	//processedFiles -= processedFolders;
-	std::cin.ignore();
 	display(processedFiles, processedFolders, duration.count(), vec_folder_path, vec_content_path, vec_file_path);
 }
 
 
-void big_for_loop(int p_i, int total_threads, int& currentfilecount, const std::filesystem::path pathToFolder, double& percentage, int& total_files_to_search, bool& searchFolders, bool& searchContent,
+void big_for_loop(uint64_t p_i, uint64_t total_threads, uint64_t& currentfilecount, const std::filesystem::path pathToFolder, double& percentage, uint64_t& total_files_to_search, bool& searchFolders, bool& searchContent,
 	std::vector<std::string>& vecSearchValue,
 	std::vector<std::filesystem::directory_entry>& vec_folder_path,
 	std::vector<std::filesystem::directory_entry>& vec_content_path,
 	std::vector<std::filesystem::directory_entry>& vec_file_path)
 {
-	int frickinFilesCounter = 0;
-	int skippedFilesCounter = 0;
+	//tracks this threads processed files
+
+	//tracks this threads skipped files
+
 
 	bool onetime_skipped = false;
 	// Iterates over every file/folder in the path of the executable and its subdiretories
@@ -398,52 +418,54 @@ void big_for_loop(int p_i, int total_threads, int& currentfilecount, const std::
 	{
 		for (std::filesystem::recursive_directory_iterator dirIter(pathToFolder), end; dirIter != end; ++dirIter)
 		{
+
 			// Print the path of the current file or directory
 			try
 			{
+				//the current file
 				const auto& entry = *dirIter;
 
+				/*
+					This if/else block implements a logic based parallelism.
+					For X threads introduced every thread skipps X files continously. By that every file gets processed excactly once.
+					At the very beginning the first thread doesn't skip at all, the second thread skips 1 file ... the last created thread skips X-1 files.
+					This approach supersedes runtime assinging of files to specific threads, but can lead to some threads having a bigger load to bear than others (randomly gets assigned 2 of the largest files).
+					This downside is only a potential issue when filecontentsearch is enabled.
+				*/
 				if (onetime_skipped)
-				{
-					int x = 1;
-					for (; x < total_threads; x++) //onetime skip for each thread (first thread doesnt skip a file ; the 5. does skip 4 files
+				{	//Continued Skipping for each Iteration (every thread skips the threadsamount of files, so that each file only is searched by one thread during the whole runtime
+					uint64_t x = 1;
+					for (; x < total_threads; x++)
 					{
 						++dirIter;
-						if (dirIter == end)
+						if (dirIter == end) //we reached the End of this threads file iteration, gotta do a final update of processed files etc
 						{
-							processedFiles += frickinFilesCounter;
 							return;
 						}
 					}
 					if (x > 1) debug_log << "Thread " << p_i << " skipped " << x << " files at this iteration.\n";
 				}
 				else
-				{
-					int counter = 0;
-					for (int i = 0; i < (p_i - 1); i++)
+				{	//onetime skip at the start for each thread (first thread doesnt skip a file ; the 5. does skip 4 files
+					uint64_t counter = 0;
+					for (uint64_t i = 0; i < (p_i - 1); i++)
 					{
 						++dirIter;
-						if (dirIter == end)
+						if (dirIter == end) //we reached the End of this threads file iteration, gotta do a final update of processed files etc
 						{
-							processedFiles += frickinFilesCounter;
 							return;
 						}
 						counter++;
 					}
 					debug_log << "Thread Nr.:" << p_i << " skipped " << counter << " files at the start.\n";
+					//Now we did our one time skip, gotta let the loop know that.
 					onetime_skipped = true;
-
+					//we gotta keep going, because otherwise the first (total_threads) files would get ignored.
 				}
 
+
+
 				debug_log << "Thread Nr.:" << p_i << " is processing File: \"" << entry.path().string() << "\"\n";
-
-
-
-
-
-				mutual_update(frickinFilesCounter, frickinFilesCounter + 1);
-				mutual_update(currentfilecount, currentfilecount + 1);;
-				mutual_update(percentage, currentfilecount / total_files_to_search * 100);
 
 
 
@@ -451,21 +473,21 @@ void big_for_loop(int p_i, int total_threads, int& currentfilecount, const std::
 				if (!is_regular_file(entry) && !is_directory(entry))
 				{
 					debug_log << "Thread Nr.:" << p_i << " skipped Item: \"" << entry.path().string() << "\" Reason: Symlink\n";
+
 					continue;
 				}
 
 
 				bool found = false;
+
 				if (std::filesystem::is_directory(entry)) // optional: Comparing Folder Name
 				{
 					if (searchFolders == false)
 					{
 						debug_log << "Skipped Folder: \"" << entry.path().string() << "\" Reason: FolderNameSearch deactivated\n";
-						mutual_update(skipped_folders, skipped_folders + 1);
 						continue;
 					}
-					mutual_update(processedFolders, processedFolders + 1);
-					mutual_update(processedFiles, processedFiles - 1);
+
 					debug_log << "Processing Folder: \"" << entry.path().string() << "\"\n";
 
 					for (auto& it : vecSearchValue)
@@ -505,7 +527,6 @@ void big_for_loop(int p_i, int total_threads, int& currentfilecount, const std::
 					{
 						debug_log << "Skipped Content Search on File: \"" << entry.path().string() << "\" Reason: File was not ready\n";
 
-						mutual_update(skipped_files, skipped_files + 1);
 						continue;
 					}
 
@@ -544,15 +565,12 @@ void big_for_loop(int p_i, int total_threads, int& currentfilecount, const std::
 			}
 			catch (const std::filesystem::filesystem_error& e) {
 				std::cerr << e.what() << std::endl;
-				processedFiles += frickinFilesCounter;
 				continue;
 			}
 			catch (const std::exception& e) {
 				std::cerr << "An error occurred: " << e.what() << std::endl;
-				processedFiles += frickinFilesCounter;
 				continue;
 			}
-			mutual_update(processedFiles, processedFiles + frickinFilesCounter);
 
 		}
 	}
