@@ -6,7 +6,7 @@
 #include "functions.h"
 
 
-int main(uint64_t argc, char* argv[])
+int main(int argc, char* argv[])
 {
 	CoInitializeEx(NULL, COINIT_MULTITHREADED);
 
@@ -59,26 +59,31 @@ int main(uint64_t argc, char* argv[])
 #ifdef NDEBUG
 	{
 
-		//std::cout << std::string(argv[0]) << "\n";
-		//std::cout << std::string(argv[1]) << "\n";
-		//std::cout << std::string(argv[2]) << "\n";
-		//std::cout << std::string(argv[3]) << "\n";
-		//std::cout << searchFolders << "\n";
-		//std::cout << searchContent << "\n";
-		std::cout << "Mode:\n\t";
+		////std::cout << std::string(argv[0]) << "\n";
+		////std::cout << std::string(argv[1]) << "\n";
+		////std::cout << std::string(argv[2]) << "\n";
+		////std::cout << std::string(argv[3]) << "\n";
+		////std::cout << searchFolders << "\n";
+		////std::cout << searchContent << "\n";
+		//std::cout << "Mode:\n\t";
 
-		if (searchFolders)
-			std::cout << "Search for Foldernames.\n\t";
-		else
-			std::cout << "Searching for Foldernames - Deactivated\n\t";
+		//if (searchFolders)
+		//	std::cout << "Search for Foldernames.\n\t";
+		//else
+		//	std::cout << "Searching for Foldernames - Deactivated\n\t";
 
-		if (searchContent)
-			std::cout << "Search in Filecontent.\n\t";
-		else
-			std::cout << "Searching in Filecontent - Deactivated\n\t";
+		//if (searchContent)
+		//	std::cout << "Search in Filecontent.\n\t";
+		//else
+		//	std::cout << "Searching in Filecontent - Deactivated\n\t";
 
 
-		startWinXSearch(std::filesystem::path(argv[1]), searchFolders, searchContent, VecSearchValue);
+		//startWinXSearch(std::filesystem::path(argv[1]), searchFolders, searchContent, VecSearchValue);
+		std::string s = "C:\\Users\\Kai\\Sciebo\\Projects\\Gisberts_STL";
+		//s = "C:\\Program Files";
+		debug_log << "Start search in: \"" << std::filesystem::path(s).string() << "\"\n";
+
+		startWinXSearch(std::filesystem::path(s), 1, 1, VecSearchValue);
 	}
 #endif
 
