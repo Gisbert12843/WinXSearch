@@ -267,7 +267,7 @@ static void sortPathVectors() {
 // Using recursive calls to this variadic template function
 template<typename First, typename ... Rest>
 void sortPathVectors(First& arg, Rest&... rest) {
-	std::vector<std::filesystem::directory_entry> copyVec = arg;
+	std::vector<std::filesystem::directory_entry> copyVec;
 	std::unordered_set<std::filesystem::path> mapped_path_vector;
 	for (auto& it : arg)
 	{

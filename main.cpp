@@ -86,7 +86,7 @@ int main(int argc, char* argv[])
 #ifndef NDEBUG
 	{
 		//std::cout << wide_string_to_string(std::wstring(argv[0]));
-		std::string s = "C:\\Users\\Kai\\Sciebo\\Projects\\Gisberts_STL";
+		std::string s = "C:\\Users\\Kai\\Sciebo\\Studium";
 		//s = "C:\\Program Files";
 		debug_log << "Start search in: \"" << std::filesystem::path(s).string() << "\"\n";
 
