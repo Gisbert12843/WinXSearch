@@ -1,34 +1,36 @@
 #include "functions.h"
 #include "conversions.h"
-
-//represents the total present files in the directory
-int filecount = 0;;
-//represents the total present folders in the directory
-int foldercount = 0;;
-
-
-//represents the final amount of searched files by all threads
-int processedFiles = 0;;
-//represents the final amount of searched folders by all threads
-int processedFolders = 0;;
+#include "unordered_set"
+//interal linkage by anon namespace
+namespace
+{
 
 
-//At any point in time this represents the total number of skipped files combined by all threads.
-std::vector<std::filesystem::path> vec_skipped_files = {};
-//At any point in time this represents the total number of skipped folders combined by all threads.
-int skipped_folders = 0;;
+	//represents the total present files in the directory
+	int filecount = 0;;
+	//represents the total present folders in the directory
+	int foldercount = 0;;
 
 
-////At any point in time this represents the total number of searched and skipped files combined by all threads.
-//uint64_t currentfilecount = 0;
-////At any point in time this represents the total number of searched and skipped folders combined by all threads.
-//uint64_t currentfoldercount = 0;
+	//represents the final amount of searched files by all threads
+	int processedFiles = 0;;
+	//represents the final amount of searched folders by all threads
+	int processedFolders = 0;;
 
 
-//At any point in time this represents the ratio between the currentfilecount and the totalfilecount in percent
-double percentage = (0);
+	//At any point in time this represents the skipped files combined by all threads.
+	std::vector<std::filesystem::path> vec_skipped_files = {};
+	//At any point in time this represents the total number of skipped folders combined by all threads.
+	int skipped_folders = 0;;
 
-std::mutex mtx;
+
+	//At any point in time this represents the ratio between the currentfilecount and the totalfilecount in percent
+	double percentage = (0);
+
+	std::mutex mtx;
+
+	std::filesystem::directory_entry search_path;
+}
 
 
 
@@ -257,6 +259,32 @@ bool validateInputStringForOpeningFinalEntriesInExplorer(std::string input, std:
 	return true;
 }
 
+// Base case for recursion termination
+static void sortPathVectors() {
+	// Do nothing
+}
+
+// Using recursive calls to this variadic template function
+template<typename First, typename ... Rest>
+void sortPathVectors(First& arg, Rest&... rest) {
+	std::vector<std::filesystem::directory_entry> copyVec = arg;
+	std::unordered_set<std::filesystem::path> mapped_path_vector;
+	for (auto& it : arg)
+	{
+		mapped_path_vector.insert(it.path());
+	}
+
+	for (std::filesystem::recursive_directory_iterator iter(search_path.path()); iter != std::filesystem::end(iter); iter++)
+	{
+		if (mapped_path_vector.find((*iter).path()) != mapped_path_vector.end())
+		{
+			copyVec.push_back(*iter);
+		}
+	}
+	arg = copyVec;
+
+	sortPathVectors(rest...);  // Recursively sort the rest
+}
 
 
 
@@ -269,31 +297,40 @@ void display(
 {
 	std::vector<uint64_t> vec_to_be_opened; //storing the identifier for files/folders to be opened
 	system("CLS");
-	uint64_t i = 0;
+	int i = 0;
 
-	std::cout << "\nProcessed an astounding " << processedFiles << " files (of " << filecount << ") inside of " << processedFolders << " folders (of " << foldercount << ") in just " << seconds / 1000000 << " seconds.\nSkipped Files : " << vec_skipped_files.size() << "\n\n";
+	std::cout << "\nProcessed an astounding " << processedFiles << " files (of " << filecount << ") and " << processedFolders << " foldernames (of " << foldercount << ") in just " << seconds / 1000000 << " seconds.\nSkipped Files : " << vec_skipped_files.size() << "\n\n";
 
-
+	sortPathVectors(vec_content_path, vec_file_path, vec_folder_path);
 
 	if (!vec_folder_path.empty())
 	{
 		std::cout << "Found Folders\n****************************************************************\n";
-		for (uint64_t j = 0; j < vec_folder_path.size(); j++, i++)
-			std::cout << i + 1 << ": " << wide_string_to_string(vec_folder_path.at(j).path()) << "\"" << std::endl;
+		for (int j = 0; j < vec_folder_path.size(); j++, i++)
+		{
+			std::string spaces(std::to_string(vec_folder_path.size()).length() - std::to_string(i+1).length(), ' ');
+			std::cout << i + 1 << ": "<< spaces << wide_string_to_string(vec_folder_path.at(j).path()) << "\"" << std::endl;
+		}
 		std::cout << "****************************************************************\n" << std::endl;
 	}
 	if (!vec_file_path.empty())
 	{
 		std::cout << "Found Files\n****************************************************************\n";
-		for (uint64_t j = 0; j < vec_file_path.size(); j++, i++)
-			std::cout << i + 1 << ": " << wide_string_to_string(vec_file_path.at(j).path()) << "\"" << std::endl;
+		for (int j = 0; j < vec_file_path.size(); j++, i++)
+		{
+			std::string spaces(std::to_string(vec_file_path.size()).length() - std::to_string(i + 1).length(), ' ');
+			std::cout << i + 1 << ": " << spaces << wide_string_to_string(vec_file_path.at(j).path()) << "\"" << std::endl;
+		}
 		std::cout << "****************************************************************\n" << std::endl;
 	}
 	if (!vec_content_path.empty())
 	{
 		std::cout << "Found Content\n****************************************************************\n";
-		for (uint64_t j = 0; j < vec_content_path.size(); j++, i++)
-			std::cout << i + 1 << ": " << wide_string_to_string(vec_content_path.at(j).path()) << "\"" << std::endl;
+		for (int j = 0; j < vec_content_path.size(); j++, i++)
+		{
+			std::string spaces(std::to_string(vec_content_path.size()).length() - std::to_string(i + 1).length(), ' ');
+			std::cout << i + 1 << ": " << spaces << wide_string_to_string(vec_content_path.at(j).path()) << "\"" << std::endl;
+		}
 		std::cout << "****************************************************************\n" << std::endl;
 	}
 	std::cout << "Skipped Files:\n";
@@ -355,6 +392,8 @@ void display(
 
 void startWinXSearch(const std::filesystem::path pathToFolder, bool searchFolders, bool searchContent, std::vector<std::string> vecSearchValue)
 {
+	search_path.assign(pathToFolder);
+
 	auto start = std::chrono::high_resolution_clock::now();
 
 	uint64_t current_thread_count = 1;
@@ -470,7 +509,7 @@ void big_for_loop(uint64_t p_i, uint64_t total_threads, const std::filesystem::p
 	//tracks this threads skipped files
 
 
-		bool onetime_skipped = false;
+	bool onetime_skipped = false;
 	// Iterates over every file/folder in the path of the executable and its subdiretories
 
 	debug_log << "Started new Thread with: p_i:" << p_i << ", Total_Threads:" << total_threads << ".\n";
@@ -579,7 +618,7 @@ void big_for_loop(uint64_t p_i, uint64_t total_threads, const std::filesystem::p
 
 					mutual_increment(processedFiles);
 
-					
+
 					//debug_log << "Processing File: \"" << entry.path().string() << "\"\n";
 					//Comparing File Name
 					for (auto& it : vecSearchValue)
@@ -638,14 +677,14 @@ void big_for_loop(uint64_t p_i, uint64_t total_threads, const std::filesystem::p
 				}
 			}
 			catch (const std::filesystem::filesystem_error& e) {
-				std::cerr << e.what() << std::endl;
+				//std::cerr << e.what() << std::endl;
 				if (!skipped)
 					mutual_vector_pushback(vec_skipped_files, (*dirIter).path());
 
 				continue;
 			}
 			catch (const std::exception& e) {
-				std::cerr << "An error occurred: " << e.what() << std::endl;
+				//std::cerr << "An error occurred: " << e.what() << std::endl;
 				if (!skipped)
 					mutual_vector_pushback(vec_skipped_files, (*dirIter).path());
 

@@ -36,3 +36,5 @@ void big_for_loop(uint64_t p_i, uint64_t total_threads, const std::filesystem::p
 
 
 void startWinXSearch(const std::filesystem::path pathToFolder, bool searchFolders, bool searchContent, std::vector<std::string> vecSearchValue);
+
+

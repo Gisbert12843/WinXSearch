@@ -15,5 +15,9 @@
 #include <chrono>
 #include <thread>
 #include <stdlib.h>
-
+#include <algorithm>
+#include <cctype>
+#include <filesystem>
+#include <string>
+#include <vector>
 #include <log_wrapper.h>
