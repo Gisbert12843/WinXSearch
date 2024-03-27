@@ -86,11 +86,11 @@ int main(int argc, char* argv[])
 #ifndef NDEBUG
 	{
 		//std::cout << wide_string_to_string(std::wstring(argv[0]));
-		std::string s = "C:\\Users\\Kai\\Sciebo\\Studium";
+		std::string s = "C:\\Users\\Kai\\Sciebo";
 		//s = "C:\\Program Files";
 		debug_log << "Start search in: \"" << std::filesystem::path(s).string() << "\"\n";
 
-		startWinXSearch(std::filesystem::path(s), 1, 1, VecSearchValue);
+		startWinXSearch(std::filesystem::path(s), 1, 0, VecSearchValue);
 	}
 #endif
 

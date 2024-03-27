@@ -12,14 +12,14 @@ namespace
 	int foldercount = 0;;
 
 
-	//represents the final amount of searched files by all threads
+	////represents the final amount of searched files by all threads
 	int processedFiles = 0;;
 	//represents the final amount of searched folders by all threads
 	int processedFolders = 0;;
 
 
 	//At any point in time this represents the skipped files combined by all threads.
-	std::vector<std::filesystem::path> vec_skipped_files = {};
+	std::vector<std::filesystem::directory_entry> vec_skipped_files = {};
 	//At any point in time this represents the total number of skipped folders combined by all threads.
 	int skipped_folders = 0;;
 
@@ -299,7 +299,9 @@ void display(
 	system("CLS");
 	int i = 0;
 
-	std::cout << "\nProcessed an astounding " << processedFiles << " files (of " << filecount << ") and " << processedFolders << " foldernames (of " << foldercount << ") in just " << seconds / 1000000 << " seconds.\nSkipped Files : " << vec_skipped_files.size() << "\n\n";
+	std::cout	<< "\nProcessed an astounding " << filecount - vec_skipped_files.size() << " files (of " << filecount << ") and "
+				<< processedFolders << " foldernames (of " << foldercount << ") in just " << seconds / 1000000
+				<< " seconds.\nSkipped Files : " << vec_skipped_files.size() << "\n\n";
 
 	sortPathVectors(vec_content_path, vec_file_path, vec_folder_path);
 
@@ -334,8 +336,11 @@ void display(
 		std::cout << "****************************************************************\n" << std::endl;
 	}
 	std::cout << "Skipped Files:\n";
-	for (auto& it : vec_skipped_files)
-		std::wcout << "\t" << (it.wstring()) << "\n";
+	for (const auto& entry : vec_skipped_files)
+	{
+		std::string temp = wide_string_to_string(entry.path());
+		std::cout << temp << std::endl; // Tab at the front, newline at the end
+	}
 	std::cout << "\n\n";
 
 	std::string to_be_opened = ""; //Stringinput of what files the user wants to be opened
@@ -483,7 +488,6 @@ void startWinXSearch(const std::filesystem::path pathToFolder, bool searchFolder
 		if (thread_list.at(i).joinable())
 		{
 			thread_list.at(i).join();
-			//mutual_update(percentage, (processedFiles + vec_skipped_files.size()) / (filecount) * 100);
 		}
 	}
 	percentage = 100;
@@ -522,7 +526,7 @@ void big_for_loop(uint64_t p_i, uint64_t total_threads, const std::filesystem::p
 	{
 		for (std::filesystem::recursive_directory_iterator dirIter(pathToFolder), end; dirIter != end; ++dirIter)
 		{
-			bool skipped = false;
+			bool skipped_file = false;
 			// Print the path of the current file or directory
 			try
 			{
@@ -544,7 +548,7 @@ void big_for_loop(uint64_t p_i, uint64_t total_threads, const std::filesystem::p
 							return;
 						}
 					}
-					if (x > 1) debug_log << "Thread " << p_i << " skipped " << x << " files at this iteration.\n";
+					//if (x > 1) debug_log << "Thread " << p_i << " skipped " << x << " files at this iteration.\n";
 				}
 				else
 				{	//onetime skip at the start for each thread (first thread doesnt skip a file ; the 5. does skip 4 files
@@ -558,7 +562,7 @@ void big_for_loop(uint64_t p_i, uint64_t total_threads, const std::filesystem::p
 						}
 						counter++;
 					}
-					debug_log << "Thread Nr.:" << p_i << " skipped " << counter << " files at the start.\n";
+					//debug_log << "Thread Nr.:" << p_i << " skipped " << counter << " files at the start.\n";
 					//Now we did our one time skip, gotta let the loop know that.
 					onetime_skipped = true;
 					//we gotta keep going, because otherwise the first (total_threads) files would get ignored.
@@ -578,9 +582,9 @@ void big_for_loop(uint64_t p_i, uint64_t total_threads, const std::filesystem::p
 				if (!is_regular_file(entry) && !is_directory(entry))
 				{
 					debug_log << "Thread Nr.:" << p_i << " skipped Item: \"" << entry.path().string() << "\" Reason: no Folder or File\n";
-					if (!skipped)
-						mutual_vector_pushback(vec_skipped_files, entry.path());
-					skipped = true;
+					if (!skipped_file)
+						mutual_vector_pushback(vec_skipped_files, entry);
+					skipped_file = true;
 
 					continue;
 				}
@@ -598,7 +602,7 @@ void big_for_loop(uint64_t p_i, uint64_t total_threads, const std::filesystem::p
 						continue;
 					}
 
-					debug_log << "Processing Folder: \"" << entry.path().string() << "\"\n";
+					//debug_log << "Processing Folder: \"" << entry.path().string() << "\"\n";
 					mutual_increment(processedFolders);
 
 
@@ -627,7 +631,7 @@ void big_for_loop(uint64_t p_i, uint64_t total_threads, const std::filesystem::p
 							mutual_vector_pushback(vec_file_path, entry);
 							found = true;
 							break;
-						}
+						}	
 					}
 
 					if (found || searchContent == false) //continue iterating if search on filename was successfull or if content search is disabled
@@ -661,13 +665,20 @@ void big_for_loop(uint64_t p_i, uint64_t total_threads, const std::filesystem::p
 					}
 					else
 					{
-						try { inputfile.close(); }
-						catch (const std::exception&) { std::cout << "Couldnt close file!" << std::endl; }
-						if (!skipped)
+						try
+						{
+							inputfile.close();
+						}
+						catch (const std::exception&)
+						{
+							std::cout << "Couldnt close file!" << std::endl;
+						
+						}
+						if (!skipped_file)
 						{
 							debug_log << "Skipped Content Search on File: \"" << entry.path().string() << "\" Reason: File was not ready\n";
-							mutual_vector_pushback(vec_skipped_files, entry.path());
-							skipped = true;
+							mutual_vector_pushback(vec_skipped_files, entry);
+							skipped_file = true;
 						}
 						continue;
 					}
@@ -678,15 +689,15 @@ void big_for_loop(uint64_t p_i, uint64_t total_threads, const std::filesystem::p
 			}
 			catch (const std::filesystem::filesystem_error& e) {
 				//std::cerr << e.what() << std::endl;
-				if (!skipped)
-					mutual_vector_pushback(vec_skipped_files, (*dirIter).path());
+				if (!skipped_file)
+					mutual_vector_pushback(vec_skipped_files, (*dirIter));
 
 				continue;
 			}
 			catch (const std::exception& e) {
 				//std::cerr << "An error occurred: " << e.what() << std::endl;
-				if (!skipped)
-					mutual_vector_pushback(vec_skipped_files, (*dirIter).path());
+				if (!skipped_file)
+					mutual_vector_pushback(vec_skipped_files, (*dirIter));
 
 				continue;
 			}
